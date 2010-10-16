@@ -101,6 +101,8 @@ void* run_client(void *x) {
 }
 
 int on_client_path(http_parser *parser, const char *p, size_t len) {
+	char *not_found_response = "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\n\r\nfalse\n";
+	char *ok_response = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\ntrue\n";
 	client *c = (client *) parser->data;
 	
 	char *path = malloc(len);
@@ -124,14 +126,13 @@ int on_client_path(http_parser *parser, const char *p, size_t len) {
 	}
 	
 	if (!ok) {
-		// TODO get id
-		send(c->fd, "HTTP/1.0 404 Not Found\r\n\r\nNot Found\n", 36, 0);
+		send(c->fd, not_found_response, strlen(not_found_response), 0);
 		close(c->fd);
 		c->fd = -1;
 		return 0;
 	}
 	
-	// TODO send response
+	send(c->fd, ok_response, strlen(ok_response), 0);
 	close(c->fd);
 	c->fd = -1;
 	return 0;
