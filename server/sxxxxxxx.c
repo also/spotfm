@@ -42,7 +42,8 @@ static sp_session_config spconfig = {
 
 // we have to keep a global because spotify doesn't give us a way to reference this from its callbacks
 static sxxxxxxx_session *g_session;
-void* main_loop(void *sess);
+static void* main_loop(void *sess);
+static void try_to_play(sxxxxxxx_session *session);
 
 # pragma mark Spotify Callbacks
 
@@ -132,7 +133,7 @@ static void try_to_play(sxxxxxxx_session *session) {
 		return;
 	}
 	
-	sp_session_player_play(session->spotify_session, 1);
+	sp_session_player_play(session->spotify_session, true);
 	fprintf(stderr, "playing!");
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
@@ -229,12 +230,10 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 	
 }
 
-void sxxxxxxx_pause(sxxxxxxx_session *session) {
-	
-}
-
 void sxxxxxxx_resume(sxxxxxxx_session *session) {
-	
+	sp_session_player_play(session->spotify_session, true);
 }
 
-static void stop(sxxxxxxx_session *session);
+void sxxxxxxx_stop(sxxxxxxx_session *session) {
+	sp_session_player_play(session->spotify_session, false);
+}
