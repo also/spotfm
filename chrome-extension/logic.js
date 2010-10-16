@@ -3,9 +3,6 @@ document.window.addEvent('click', function(theEvent) {
     var parents = target.getParents('.candyStriped');
     if (parents.length !== 0){
 
-body.getChildren().each(function (item){
-    item.addEvent('click', function(){
-        console.log('click!');
         // get the name of the track
         var subjectCell = target.getParents('td.subjectCell')[0];
         var text = subjectCell.get('text');
