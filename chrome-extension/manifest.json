@@ -4,9 +4,7 @@
   "description": "Spotify player for last.fm pages",
   "browser_action": {
   },
-  "permissions": [
-    "http://www.last.fm/*"
-  ],
+  "permissions": ["http://www.last.fm/*", "http://ws.spotify.com/*"],
   "content_scripts": [
     {
       "matches": ["http://www.last.fm/music/*"],
