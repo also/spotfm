@@ -114,6 +114,14 @@ int on_client_path(http_parser *parser, const char *p, size_t len) {
 		sxxxxxxx_play(c->session, path + len - 23);
 		ok = true;
 	}
+	else if (!strcmp("resume", path)) {
+		sxxxxxxx_resume(c->session);
+		ok = true;
+	}
+	else if (!strcmp("stop", path)) {
+		sxxxxxxx_stop(c->session);
+		ok = true;
+	}
 	
 	if (!ok) {
 		// TODO get id

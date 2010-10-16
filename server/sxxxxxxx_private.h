@@ -22,8 +22,5 @@ typedef struct sxxxxxxx_session {
 } _sxxxxxxx_session;
 
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id);
-void sxxxxxxx_pause(sxxxxxxx_session *session);
 void sxxxxxxx_resume(sxxxxxxx_session *session);
-static void sxxxxxxx_stop(sxxxxxxx_session *session);
-
-static void try_to_play(sxxxxxxx_session *session);
+void sxxxxxxx_stop(sxxxxxxx_session *session);
