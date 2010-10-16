@@ -1,0 +1,3 @@
+[submodule "server/http-parser"]
+	path = server/http-parser
+	url = git://github.com/ry/http-parser.git
