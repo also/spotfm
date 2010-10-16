@@ -2,12 +2,14 @@
   "name": "Last Spot",
   "version": "1.0",
   "description": "Spotify player for last.fm pages",
-  "permissions": ["http://www.last.fm/*", "http://ws.spotify.com/*"],
+  "permissions": ["http://ws.spotify.com/*", "http://localhost:9999/*"],
   "content_scripts": [
     {
       "matches": ["http://www.last.fm/music/*"],
       "js": ["mootools-core-1.3-full-nocompat-yc.js", "logic.js"]
     }
-  ]
+  ],
+  "browser_action": {},
+  "background_page": "background.html"
 }
 
