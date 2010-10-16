@@ -4,7 +4,12 @@ document.window.addEvent('click', function(theEvent) {
     if (parents.length !== 0){
 
         // get the name of the track
-        var subjectCell = target.getParents('td.subjectCell')[0];
+        if (! target.className === "subjectCell"){
+            var subjectCell = target.getParents('td.subjectCell')[0];
+        }
+        else {
+            var subjectCell = target;
+        }
         var text = subjectCell.get('text');
 
         var urlElement = subjectCell.getElements('a');
@@ -16,14 +21,21 @@ document.window.addEvent('click', function(theEvent) {
 
         var query = [escape(artist), escape(text)].join('+');
         var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
+        console.log(requestURL);
         var jsonRequest = new Request.JSON({url: requestURL, method:'get', headers: {}, onSuccess: function(json_object, json_string){
-            var track = json_object.tracks[0];
-            //console.log([track.artists[0].name, track.album.name, track.name].join(' '));
-            var id = track.href;
-            console.log(id);
-            var audioRequest = new Request({url: "http://localhost:9999/play/" + id, method:'get'});
-            audioRequest.send();
+            var tracks = json_object.tracks;
+            if (tracks.length !== 0){
+                var track = tracks[0];
+                var id = track.href;
+                console.log([track.artists[0].name, track.album.name, track.name].join(' '));
+                console.log(id);
+                var audioRequest = new Request({url: "http://localhost:9999/play/" + id, method:'get'});
+                audioRequest.send();
             }
+            else {
+                console.log("couldn't resolve");
+            }
+        }
         });
         jsonRequest.send();
     }
