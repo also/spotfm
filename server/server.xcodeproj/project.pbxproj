@@ -12,7 +12,29 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		9471D514126A04A40042C978 /* server.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D513126A04A40042C978 /* server.c */; };
+		9471D537126A06C80042C978 /* libspotify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9471D536126A06C80042C978 /* libspotify.framework */; };
+		9471D53E126A07060042C978 /* sxxxxxxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D53D126A07060042C978 /* sxxxxxxx.c */; };
+		9471D63B126A15A30042C978 /* http_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D61E126A15A30042C978 /* http_parser.c */; };
+		9471D686126A1ADD0042C978 /* libspotify.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9471D536126A06C80042C978 /* libspotify.framework */; };
+		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
+		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
+		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9471D684126A1A8A0042C978 /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				9471D686126A1ADD0042C978 /* libspotify.framework in Copy Frameworks */,
+			);
+			name = "Copy Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -27,6 +49,20 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* server-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "server-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* server.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = server.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9471D512126A04A40042C978 /* server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = server.h; sourceTree = "<group>"; };
+		9471D513126A04A40042C978 /* server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = server.c; sourceTree = "<group>"; };
+		9471D536126A06C80042C978 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libspotify.framework; sourceTree = "<group>"; };
+		9471D53C126A07060042C978 /* sxxxxxxx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sxxxxxxx.h; sourceTree = "<group>"; };
+		9471D53D126A07060042C978 /* sxxxxxxx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sxxxxxxx.c; sourceTree = "<group>"; };
+		9471D568126A09F60042C978 /* sxxxxxxx_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sxxxxxxx_private.h; sourceTree = "<group>"; };
+		9471D58A126A140C0042C978 /* appkey.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = appkey.c; sourceTree = "<group>"; };
+		9471D61E126A15A30042C978 /* http_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = http_parser.c; sourceTree = "<group>"; };
+		9471D61F126A15A30042C978 /* http_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http_parser.h; sourceTree = "<group>"; };
+		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
+		94E03232126A29B100A59FA5 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
+		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
+		94E0324F126A2B1F00A59FA5 /* osx-audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "osx-audio.c"; sourceTree = "<group>"; };
+		94E03253126A2B6800A59FA5 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +71,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				9471D537126A06C80042C978 /* libspotify.framework in Frameworks */,
+				94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +117,7 @@
 		29B97314FDCFA39411CA2CEA /* server */ = {
 			isa = PBXGroup;
 			children = (
+				9471D5F7126A15A30042C978 /* http-parser */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -91,6 +130,16 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				94E0324F126A2B1F00A59FA5 /* osx-audio.c */,
+				94E03236126A2A1500A59FA5 /* queue.h */,
+				9471D512126A04A40042C978 /* server.h */,
+				9471D513126A04A40042C978 /* server.c */,
+				9471D53C126A07060042C978 /* sxxxxxxx.h */,
+				9471D53D126A07060042C978 /* sxxxxxxx.c */,
+				9471D568126A09F60042C978 /* sxxxxxxx_private.h */,
+				9471D58A126A140C0042C978 /* appkey.c */,
+				94E03231126A29B100A59FA5 /* audio.c */,
+				94E03232126A29B100A59FA5 /* audio.h */,
 				256AC3F00F4B6AF500CF3369 /* server_Prefix.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
@@ -112,8 +161,19 @@
 			children = (
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
+				9471D536126A06C80042C978 /* libspotify.framework */,
+				94E03253126A2B6800A59FA5 /* AudioToolbox.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9471D5F7126A15A30042C978 /* http-parser */ = {
+			isa = PBXGroup;
+			children = (
+				9471D61E126A15A30042C978 /* http_parser.c */,
+				9471D61F126A15A30042C978 /* http_parser.h */,
+			);
+			path = "http-parser";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -123,6 +183,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "server" */;
 			buildPhases = (
+				9471D684126A1A8A0042C978 /* Copy Frameworks */,
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
 				8D11072E0486CEB800E47090 /* Frameworks */,
@@ -180,6 +241,11 @@
 			files = (
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				256AC3DA0F4B6AC300CF3369 /* serverAppDelegate.m in Sources */,
+				9471D514126A04A40042C978 /* server.c in Sources */,
+				9471D53E126A07060042C978 /* sxxxxxxx.c in Sources */,
+				9471D63B126A15A30042C978 /* http_parser.c in Sources */,
+				94E03233126A29B100A59FA5 /* audio.c in Sources */,
+				94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +276,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
@@ -227,6 +297,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = server_Prefix.pch;
@@ -244,6 +318,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "http-parser";
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
@@ -257,6 +332,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "http-parser";
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
 			};
