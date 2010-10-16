@@ -4,6 +4,8 @@ var body = $$('table.candyStriped tbody')[0];
 body.getChildren().each(function (item){
     item.addEvent('click', function(){
         console.log('click!');
+        var stopRequest = new Request({url: "http://localhost:9999/stop", method:'get'})
+        stopRequest.send();
         // get the name of the track
         var subjectCell = this.getChildren('td.subjectCell');
         var text = subjectCell.get('text')[0];
@@ -23,7 +25,7 @@ body.getChildren().each(function (item){
             var id = track.href;
             console.log(id);
             //var audioRequest = new Request({url: "localhost:9999/play/" + id, method:'get'})
-            var audioRequest = new Request({url: "http://10.10.11.221:9999/play/" + id, method:'get'})
+            var audioRequest = new Request({url: "http://localhost:9999/play/" + id, method:'get'})
             audioRequest.send();
             }
         });
