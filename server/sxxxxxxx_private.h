@@ -7,7 +7,15 @@
 
 #include "audio.h"
 
+typedef enum {
+	STOPPED,
+	LOADING,
+	BUFFERING,
+	PLAYING,
+} sxxxxxxx_state;
+
 typedef struct sxxxxxxx_session {
+	sxxxxxxx_state state;
 	sp_session *spotify_session;
 	sp_track *track;
 	audio_fifo_t audiofifo;

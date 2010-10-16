@@ -62,12 +62,18 @@ static void notify_main_thread(sp_session *sess) {
 }
 
 static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames) {
+	if (g_session->state != PLAYING) {
+		g_session->state = PLAYING;
+		fprintf(stderr, "playing\n");
+	}
+
 	audio_fifo_t *af = &g_session->audiofifo;
 	audio_fifo_data_t *afd;
 	size_t s;
 	
-	if (num_frames == 0)
+	if (num_frames == 0) {
 		return 0; // Audio discontinuity, do nothing
+	}
 	
 	pthread_mutex_lock(&af->mutex);
 	
@@ -115,6 +121,7 @@ static void message_to_user(sp_session *session, const char *data) {
 
 static void end_of_track(sp_session *sess) {
 	sp_track_release(g_session->track);
+	audio_fifo_flush(&g_session->audiofifo);
 	sp_session_player_unload(sess);
 }
 
@@ -133,8 +140,9 @@ static void try_to_play(sxxxxxxx_session *session) {
 		return;
 	}
 	
+	audio_fifo_flush(&g_session->audiofifo);
 	sp_session_player_play(session->spotify_session, true);
-	fprintf(stderr, "playing!");
+	fprintf(stderr, "buffering\n");
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
 
@@ -144,6 +152,7 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	
 	s = *session = (_sxxxxxxx_session *) malloc(sizeof(_sxxxxxxx_session));
 	s->track = NULL;
+	s->state = STOPPED;
 	g_session = s;
 	
 	spconfig.application_key_size = g_appkey_size;
@@ -223,6 +232,8 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 	if (track) {
 		sp_track_add_ref(track);
 		session->track = track;
+		session->state = BUFFERING;
+		fprintf(stderr, "loading\n");
 		try_to_play(session);
 	}
 	
@@ -236,4 +247,5 @@ void sxxxxxxx_resume(sxxxxxxx_session *session) {
 
 void sxxxxxxx_stop(sxxxxxxx_session *session) {
 	sp_session_player_play(session->spotify_session, false);
+	session->state = STOPPED;
 }
