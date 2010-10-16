@@ -2,8 +2,6 @@
   "name": "Last Spot",
   "version": "1.0",
   "description": "Spotify player for last.fm pages",
-  "browser_action": {
-  },
   "permissions": ["http://www.last.fm/*", "http://ws.spotify.com/*"],
   "content_scripts": [
     {
