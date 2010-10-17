@@ -1,4 +1,5 @@
 document.window.addEvent('click', function(theEvent) {
+    console.log('click!');
     var target = theEvent.target;
     var parents = target.getParents('.candyStriped');
     if (parents.length !== 0){

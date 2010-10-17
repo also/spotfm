@@ -5,13 +5,11 @@
   "permissions": ["http://ws.spotify.com/*", "http://localhost:9999/*"],
   "content_scripts": [
     {
-      "matches": ["http://www.last.fm/music/*"],
-      "js": ["mootools-core-1.3-full-nocompat-yc.js", "logic.js"]
+      "matches": ["http://www.last.fm/*"],
+      "js": ["mootools-core-1.3-full-nocompat-yc.js", "logic.js"],
+      "css": ["lastfm.css"]
     }
   ],
-  "browser_action": {
-    "default_icon": "play.jpeg"
-   },
   "background_page": "background.html"
   }
 
