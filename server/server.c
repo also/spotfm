@@ -12,11 +12,25 @@
 typedef struct client {
 	struct sxxxxxxx_session *session;
 	int fd;
+	bool headers_complete;
+	bool last_was_value;
+	char *path;
+	char *key1;
+	char *key2;
+	char *header_value;
+	size_t header_value_len;
+	char *header_name;
+	size_t header_name_len;
 } client;
 
 void* run_client(void *sp);
 
 int on_client_path (http_parser *parser, const char *p, size_t len);
+int on_client_header_field(http_parser *parser, const char *p, size_t len);
+int on_client_header_value(http_parser *parser, const char *p, size_t len);
+int on_client_headers_complete(http_parser *parser);
+
+static void handle_client_request(client *c);
 
 void* server_loop(void *s) {
 	sxxxxxxx_session *session = (sxxxxxxx_session *) s;
@@ -53,6 +67,7 @@ void* server_loop(void *s) {
 		
 		client *c = (client *) malloc(sizeof(client));
 		c->session = session;
+		c->headers_complete = false;
 		c->fd = newsockfd;
 		pthread_t client_thread;
 		pthread_create(&client_thread, NULL, run_client, c);
@@ -68,6 +83,9 @@ void* run_client(void *x) {
 	http_parser_init(parser);
 	parser->data = c;
 	parser->on_path = on_client_path;
+	parser->on_header_field = on_client_header_field;
+	parser->on_header_value = on_client_header_value;
+	parser->on_headers_complete = on_client_headers_complete;
 	size_t len = 80*1024, nparsed;
 	char buf[len];
 	ssize_t recved;
@@ -85,55 +103,80 @@ void* run_client(void *x) {
 		 */
 		nparsed = http_parse_requests(parser, buf, recved);
 		
-		if (nparsed != recved) {
-			/* TODO Handle error. Usually just close the connection. */
+		if (c->headers_complete) {
+			handle_client_request(c);
+			fprintf(stderr, "handled!\n");
+			break;
+		}
+		else if (nparsed != recved) {
+			break;
 		}
 	} while (recved > 0);
-	
 
 	if (c->fd > 0) {
 		close(c->fd);
 	}
 	
+	free(c->path);
 	free(c);
 	free(parser);
+	
 	return NULL;
 }
 
 int on_client_path(http_parser *parser, const char *p, size_t len) {
+	client *c = (client *) parser->data;
+
+	c->path = malloc(len);
+	c->path[len - 1] = 0;
+	memcpy(c->path, p + 1, len - 1);
+	fprintf(stderr, "client: \"%s\"\n", c->path);
+	return 0;
+}
+
+int on_client_header_field(http_parser *parser, const char *p, size_t len) {
+	return 0;
+}
+
+int on_client_header_value(http_parser *parser, const char *p, size_t len) {
+	return 0;
+}
+
+int on_client_headers_complete(http_parser *parser) {
+	client *c = (client *) parser->data;
+	c->headers_complete = true;
+	return 0;
+}
+
+static void handle_client_request(client *c) {
 	char *not_found_response = "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\n\r\nfalse\n";
 	char *ok_response = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\ntrue\n";
-	client *c = (client *) parser->data;
-	
-	char *path = malloc(len);
-	path[len] = 0;
-	memcpy(path, p + 1, len - 1);
-	fprintf(stderr, "client: %s\n", path);
 	
 	bool ok = false;
+	size_t len = strlen(c->path);
 	
-	if ((len == 28 || len == 42 || len == 58) && strstr(path, "play/") == path) {
-		sxxxxxxx_play(c->session, path + len - 23);
+	if ((len == 27 || len == 41 || len == 57) && strstr(c->path, "play/") == c->path) {
+		fprintf(stderr, "sxxxxxxx_play\n");
+		sxxxxxxx_play(c->session, c->path + len - 22);
 		ok = true;
 	}
-	else if (!strcmp("resume", path)) {
+	else if (!strcmp("resume", c->path)) {
 		sxxxxxxx_resume(c->session);
 		ok = true;
 	}
-	else if (!strcmp("stop", path)) {
+	else if (!strcmp("stop", c->path)) {
 		sxxxxxxx_stop(c->session);
 		ok = true;
 	}
 	
 	if (!ok) {
+		fprintf(stderr, "invalid url: %s\n", c->path);
 		send(c->fd, not_found_response, strlen(not_found_response), 0);
 		close(c->fd);
 		c->fd = -1;
-		return 0;
 	}
 	
 	send(c->fd, ok_response, strlen(ok_response), 0);
 	close(c->fd);
 	c->fd = -1;
-	return 0;
 }
