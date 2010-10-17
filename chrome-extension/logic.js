@@ -1,6 +1,7 @@
 document.window.addEvent('click', function(theEvent) {
     console.log('click!');
     var target = theEvent.target;
+    console.log(target.className);
     var parents = target.getParents('.candyStriped');
     if (parents.length !== 0){
 
@@ -11,7 +12,6 @@ document.window.addEvent('click', function(theEvent) {
         else {
             var subjectCell = target;
         }
-        var text = subjectCell.get('text');
 
         var urlElement = subjectCell.getElements('a');
         var url = urlElement[0].get('href');
@@ -19,6 +19,12 @@ document.window.addEvent('click', function(theEvent) {
         artist = unescape(artist);
         artist = artist.replace(/\+/g, ' ');
         artist = unescape(artist);
+
+        var text = url.toString().split('/')[4];
+        text = unescape(text);
+        text = text.replace(/\+/g, ' ');
+        text = unescape(text);
+        console.log(text);
 
         var query = [escape(artist), escape(text)].join('+');
         var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
