@@ -1,0 +1,9 @@
+.icon.preview_icon {
+    display: none;
+}
+
+tbody td.playbuttonCell{
+    background-image:url('http://static.ryanberdeen.com/spotify-icon-small.png') !important;
+    background-repeat:no-repeat !important;
+    background-position:center !important;
+}
