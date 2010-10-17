@@ -48,7 +48,7 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* server-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "server-Info.plist"; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* server.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = server.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* SXXXXXXX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SXXXXXXX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9471D512126A04A40042C978 /* server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = server.h; sourceTree = "<group>"; };
 		9471D513126A04A40042C978 /* server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = server.c; sourceTree = "<group>"; };
 		9471D536126A06C80042C978 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libspotify.framework; sourceTree = "<group>"; };
@@ -109,7 +109,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* server.app */,
+				8D1107320486CEB800E47090 /* SXXXXXXX.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -179,9 +179,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8D1107260486CEB800E47090 /* server */ = {
+		8D1107260486CEB800E47090 /* SXXXXXXX */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "server" */;
+			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "SXXXXXXX" */;
 			buildPhases = (
 				9471D684126A1A8A0042C978 /* Copy Frameworks */,
 				8D1107290486CEB800E47090 /* Resources */,
@@ -192,10 +192,10 @@
 			);
 			dependencies = (
 			);
-			name = server;
+			name = SXXXXXXX;
 			productInstallPath = "$(HOME)/Applications";
 			productName = server;
-			productReference = 8D1107320486CEB800E47090 /* server.app */;
+			productReference = 8D1107320486CEB800E47090 /* SXXXXXXX.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -216,7 +216,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D1107260486CEB800E47090 /* server */,
+				8D1107260486CEB800E47090 /* SXXXXXXX */,
 			);
 		};
 /* End PBXProject section */
@@ -287,7 +287,7 @@
 				GCC_PREFIX_HEADER = server_Prefix.pch;
 				INFOPLIST_FILE = "server-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				PRODUCT_NAME = server;
+				PRODUCT_NAME = SXXXXXXX;
 			};
 			name = Debug;
 		};
@@ -305,7 +305,7 @@
 				GCC_PREFIX_HEADER = server_Prefix.pch;
 				INFOPLIST_FILE = "server-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				PRODUCT_NAME = server;
+				PRODUCT_NAME = SXXXXXXX;
 			};
 			name = Release;
 		};
@@ -340,7 +340,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "server" */ = {
+		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "SXXXXXXX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C01FCF4B08A954540054247B /* Debug */,
