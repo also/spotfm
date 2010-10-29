@@ -138,6 +138,7 @@ static void try_to_play(sxxxxxxx_session *session) {
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
 		fprintf(stderr, "failed loading player: %s\n", sp_error_message(error));
+		pthread_mutex_unlock(&session->spotify_mutex);
 		return;
 	}
 	else {
