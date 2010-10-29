@@ -137,12 +137,14 @@ static void try_to_play(sxxxxxxx_session *session) {
 	pthread_mutex_lock(&session->spotify_mutex);
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
+		fprintf(stderr, "failed loading player: %s\n", sp_error_message(error));
 		return;
 	}
-	
-	audio_fifo_flush(&g_session->audiofifo);
-	sp_session_player_play(session->spotify_session, true);
-	fprintf(stderr, "buffering\n");
+	else {
+		audio_fifo_flush(&g_session->audiofifo);
+		sp_session_player_play(session->spotify_session, true);
+		fprintf(stderr, "buffering\n");
+	}
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
 
