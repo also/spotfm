@@ -33,25 +33,55 @@ static struct AQPlayerState {
     AudioStreamBasicDescription   desc;
     AudioQueueRef                 queue;
     AudioQueueBufferRef           buffers[BUFFER_COUNT];
+    AudioQueueBufferRef           free_buffers[BUFFER_COUNT];
+	unsigned free_buffer_count;
     unsigned buffer_size;
+	bool playing;
 } state;
 
-static void audio_callback (void *aux, AudioQueueRef aq, AudioQueueBufferRef bufout)
-{
-    audio_fifo_t *af = aux;
-    audio_fifo_data_t *afd = audio_get(af);
 
+void audio_reset(audio_fifo_t *af) {
+	state.playing = false;
+	AudioQueueReset(state.queue);
+}
+
+static void handle_audio(audio_fifo_t *af, audio_fifo_data_t *afd, AudioQueueBufferRef bufout) {
+	OSStatus result;
     bufout->mAudioDataByteSize = afd->nsamples * sizeof(short) * afd->channels;
 
     assert(bufout->mAudioDataByteSize <= state.buffer_size);
     memcpy(bufout->mAudioData, afd->samples, bufout->mAudioDataByteSize);
 
-    AudioQueueEnqueueBuffer(state.queue, bufout, 0, NULL);
+    result = AudioQueueEnqueueBuffer(state.queue, bufout, 0, NULL);
+
     free(afd);
 }
 
-void audio_init(audio_fifo_t *af)
-{
+static void audio_callback(void *aux, AudioQueueRef aq, AudioQueueBufferRef bufout) {
+	if (state.playing) {
+		audio_fifo_t *af = aux;
+		audio_fifo_data_t *afd = audio_get_nowait(af);
+		if (afd) {
+			handle_audio(af, afd, bufout);
+			return;
+		}
+	}
+
+	state.free_buffers[state.free_buffer_count++] = bufout;
+}
+
+extern void audio_enqueue(audio_fifo_t *af, audio_fifo_data_t *afd) {
+	state.playing = true;
+	if (state.free_buffer_count > 0) {
+		handle_audio(af, afd, state.free_buffers[--state.free_buffer_count]);
+	}
+	else {
+		TAILQ_INSERT_TAIL(&af->q, afd, link);
+		af->qlen += afd->nsamples;
+	}
+}
+
+void audio_init(audio_fifo_t *af) {
     int i;
     TAILQ_INIT(&af->q);
     af->qlen = 0;
@@ -68,34 +98,34 @@ void audio_init(audio_fifo_t *af)
     state.desc.mFramesPerPacket = 1;
     state.desc.mBytesPerFrame = sizeof (short) * state.desc.mChannelsPerFrame;
     state.desc.mBytesPerPacket = state.desc.mBytesPerFrame;
-    state.desc.mBitsPerChannel = (state.desc.mBytesPerFrame*8)/state.desc.mChannelsPerFrame;
+    state.desc.mBitsPerChannel = (state.desc.mBytesPerFrame*8) / state.desc.mChannelsPerFrame;
     state.desc.mReserved = 0;
 
     state.buffer_size = state.desc.mBytesPerFrame * state.desc.mSampleRate;
 
     if (noErr != AudioQueueNewOutput(&state.desc, audio_callback, af, NULL, NULL, 0, &state.queue)) {
-	printf("audioqueue error\n");
-	return;
+		fprintf(stderr, "audioqueue error\n");
+		return;
     }
 
     // Start some empty playback so we'll get the callbacks that fill in the actual audio.
     for (i = 0; i < BUFFER_COUNT; ++i) {
-	AudioQueueAllocateBuffer(state.queue, state.buffer_size, &state.buffers[i]);
-	state.buffers[i]->mAudioDataByteSize = state.buffer_size;
-	AudioQueueEnqueueBuffer(state.queue, state.buffers[i], 0, NULL);
+		AudioQueueAllocateBuffer(state.queue, state.buffer_size, &state.buffers[i]);
+		state.free_buffers[i] = state.buffers[i];
     }
+	state.free_buffer_count = BUFFER_COUNT;
+	state.playing = false;
     if (noErr != AudioQueueStart(state.queue, NULL)) puts("AudioQueueStart failed");
 }
 
-void audio_fifo_flush(audio_fifo_t *af)
-{
+void audio_fifo_flush(audio_fifo_t *af) {
     audio_fifo_data_t *afd;
 
     pthread_mutex_lock(&af->mutex);
 
     while((afd = TAILQ_FIRST(&af->q))) {
-	TAILQ_REMOVE(&af->q, afd, link);
-	free(afd);
+		TAILQ_REMOVE(&af->q, afd, link);
+		free(afd);
     }
 
     af->qlen = 0;

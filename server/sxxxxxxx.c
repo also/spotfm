@@ -62,12 +62,12 @@ static void notify_main_thread(sp_session *sess) {
 }
 
 static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames) {
+	audio_fifo_t *af = &g_session->audiofifo;
 	if (g_session->state != PLAYING) {
 		g_session->state = PLAYING;
 		fprintf(stderr, "playing\n");
 	}
 
-	audio_fifo_t *af = &g_session->audiofifo;
 	audio_fifo_data_t *afd;
 	size_t s;
 	
@@ -80,7 +80,6 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	/* Buffer one second of audio */
 	if (af->qlen > format->sample_rate) {
 		pthread_mutex_unlock(&af->mutex);
-		
 		return 0;
 	}
 	
@@ -94,8 +93,7 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	afd->rate = format->sample_rate;
 	afd->channels = format->channels;
 	
-	TAILQ_INSERT_TAIL(&af->q, afd, link);
-	af->qlen += num_frames;
+	audio_enqueue(af, afd);
 	
 	pthread_cond_signal(&af->cond);
 	pthread_mutex_unlock(&af->mutex);
@@ -144,6 +142,7 @@ static void try_to_play(sxxxxxxx_session *session) {
 	}
 	else {
 		audio_fifo_flush(&g_session->audiofifo);
+		audio_reset(&g_session->audiofifo);
 		sp_session_player_play(session->spotify_session, true);
 		fprintf(stderr, "buffering\n");
 	}

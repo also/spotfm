@@ -51,7 +51,10 @@ typedef struct audio_fifo {
 
 /* --- Functions --- */
 extern void audio_init(audio_fifo_t *af);
+extern void audio_enqueue(audio_fifo_t *af, audio_fifo_data_t *afd);
 extern void audio_fifo_flush(audio_fifo_t *af);
+extern void audio_reset(audio_fifo_t *af);
 audio_fifo_data_t* audio_get(audio_fifo_t *af);
+audio_fifo_data_t* audio_get_nowait(audio_fifo_t *af);
 
 #endif /* _JUKEBOX_AUDIO_H_ */

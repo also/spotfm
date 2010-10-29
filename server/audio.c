@@ -27,17 +27,31 @@
 
 #include "audio.h"
 
-audio_fifo_data_t* audio_get(audio_fifo_t *af)
-{
+audio_fifo_data_t* audio_get(audio_fifo_t *af) {
     audio_fifo_data_t *afd;
     pthread_mutex_lock(&af->mutex);
   
-    while (!(afd = TAILQ_FIRST(&af->q)))
-	pthread_cond_wait(&af->cond, &af->mutex);
+    while (!(afd = TAILQ_FIRST(&af->q))) {
+		pthread_cond_wait(&af->cond, &af->mutex);
+	}
   
     TAILQ_REMOVE(&af->q, afd, link);
     af->qlen -= afd->nsamples;
   
+    pthread_mutex_unlock(&af->mutex);
+    return afd;
+}
+
+audio_fifo_data_t* audio_get_nowait(audio_fifo_t *af) {
+    audio_fifo_data_t *afd;
+    pthread_mutex_lock(&af->mutex);
+
+    afd = TAILQ_FIRST(&af->q);
+	if (afd) {
+		TAILQ_REMOVE(&af->q, afd, link);
+		af->qlen -= afd->nsamples;
+	}
+
     pthread_mutex_unlock(&af->mutex);
     return afd;
 }
