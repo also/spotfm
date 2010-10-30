@@ -120,7 +120,6 @@ static void message_to_user(sp_session *session, const char *data) {
 static void end_of_track(sp_session *sess) {
 	// TODO better to leak than to crash...
 	// sp_track_release(g_session->track);
-	audio_fifo_flush(&g_session->audiofifo);
 	// sp_session_player_unload(sess);
 }
 
