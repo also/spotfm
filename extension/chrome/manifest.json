@@ -1,5 +1,5 @@
 {
-  "name": "Last Spot",
+  "name": "spotfm",
   "version": "1.0",
   "description": "Spotify player for last.fm pages",
   "permissions": ["http://ws.spotify.com/*", "http://localhost:9999/*"],
