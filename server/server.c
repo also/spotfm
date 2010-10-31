@@ -66,9 +66,11 @@ void* server_loop(void *s) {
 		}
 		
 		client *c = (client *) malloc(sizeof(client));
+		bzero(c, sizeof(client));
 		c->session = session;
 		c->headers_complete = false;
 		c->fd = newsockfd;
+
 		pthread_t client_thread;
 		pthread_create(&client_thread, NULL, run_client, c);
 	}
@@ -117,7 +119,9 @@ void* run_client(void *x) {
 		close(c->fd);
 	}
 	
-	free(c->path);
+	if (c->path) {
+		free(c->path);
+	}
 	free(c);
 	free(parser);
 	
