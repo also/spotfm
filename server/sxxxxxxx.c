@@ -42,6 +42,7 @@ static sp_session_config spconfig = {
 
 // we have to keep a global because spotify doesn't give us a way to reference this from its callbacks
 static sxxxxxxx_session *g_session;
+
 static void* main_loop(void *sess);
 static void try_to_play(sxxxxxxx_session *session);
 
@@ -118,21 +119,26 @@ static void message_to_user(sp_session *session, const char *data) {
 }
 
 static void end_of_track(sp_session *sess) {
+	g_session->state = STOPPED;
+	sp_track_release(g_session->track);
+	g_session->track = NULL;
 	// TODO better to leak than to crash...
-	// sp_track_release(g_session->track);
-	// sp_session_player_unload(sess);
+	//sp_session_player_unload(sess);
 }
 
 static void try_to_play(sxxxxxxx_session *session) {
-	if (session->track == NULL) {
+	if (!session->next_track) {
 		return;
 	}
-	if (sp_track_is_loaded(session->track) == 0) {
+	if (sp_track_is_loaded(session->next_track) == 0) {
 		return;
 	}
 	sp_error error;
 	
 	pthread_mutex_lock(&session->spotify_mutex);
+
+	session->track = session->next_track;
+	session->next_track = NULL;
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
 		fprintf(stderr, "failed loading player: %s\n", sp_error_message(error));
@@ -153,6 +159,7 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	sxxxxxxx_session *s;
 	
 	s = *session = (_sxxxxxxx_session *) malloc(sizeof(_sxxxxxxx_session));
+	bzero(s, sizeof(_sxxxxxxx_session));
 	s->track = NULL;
 	s->state = STOPPED;
 	g_session = s;
@@ -233,7 +240,7 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 	sp_track *track = sp_link_as_track(link);
 	if (track) {
 		sp_track_add_ref(track);
-		session->track = track;
+		session->next_track = track;
 		session->state = BUFFERING;
 		fprintf(stderr, "loading\n");
 		try_to_play(session);

@@ -18,6 +18,7 @@ typedef struct sxxxxxxx_session {
 	sxxxxxxx_state state;
 	sp_session *spotify_session;
 	sp_track *track;
+	sp_track *next_track;
 	audio_fifo_t audiofifo;
 	// synchronize on libspotify method calls
 	pthread_mutex_t spotify_mutex;
