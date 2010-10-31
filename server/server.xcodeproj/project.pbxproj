@@ -12,6 +12,7 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		943E8E4A127DCC86006894D3 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 943E8E49127DCC86006894D3 /* Security.framework */; };
 		9471D514126A04A40042C978 /* server.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D513126A04A40042C978 /* server.c */; };
 		9471D537126A06C80042C978 /* libspotify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9471D536126A06C80042C978 /* libspotify.framework */; };
 		9471D53E126A07060042C978 /* sxxxxxxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D53D126A07060042C978 /* sxxxxxxx.c */; };
@@ -49,6 +50,7 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* server-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "server-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* SXXXXXXX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SXXXXXXX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		943E8E49127DCC86006894D3 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		9471D512126A04A40042C978 /* server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = server.h; sourceTree = "<group>"; };
 		9471D513126A04A40042C978 /* server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = server.c; sourceTree = "<group>"; };
 		9471D536126A06C80042C978 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libspotify.framework; sourceTree = "<group>"; };
@@ -73,6 +75,7 @@
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				9471D537126A06C80042C978 /* libspotify.framework in Frameworks */,
 				94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */,
+				943E8E4A127DCC86006894D3 /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +162,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				943E8E49127DCC86006894D3 /* Security.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 				9471D536126A06C80042C978 /* libspotify.framework */,
