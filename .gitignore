@@ -1,1 +1,9 @@
 server/build
+extension/spotfm.safariextension/logic.js
+extension/chrome/logic.js
+extension/spotfm.safariextension/mootools-core-1.3-full-nocompat-yc.js
+extension/chrome/mootools-core-1.3-full-nocompat-yc.js
+extension/spotfm.safariextension/lastfm.css
+extension/chrome/lastfm.css
+extension/spotfm.safariextension/spotify-icon-small.png
+extension/chrome/spotify-icon-small.png
