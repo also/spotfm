@@ -18,6 +18,7 @@
 		9471D53E126A07060042C978 /* sxxxxxxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D53D126A07060042C978 /* sxxxxxxx.c */; };
 		9471D63B126A15A30042C978 /* http_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D61E126A15A30042C978 /* http_parser.c */; };
 		9471D686126A1ADD0042C978 /* libspotify.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9471D536126A06C80042C978 /* libspotify.framework */; };
+		948D122C127E55180082650E /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 948D122B127E55180082650E /* md5.c */; };
 		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
@@ -60,6 +61,8 @@
 		9471D58A126A140C0042C978 /* appkey.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = appkey.c; sourceTree = "<group>"; };
 		9471D61E126A15A30042C978 /* http_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = http_parser.c; sourceTree = "<group>"; };
 		9471D61F126A15A30042C978 /* http_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http_parser.h; sourceTree = "<group>"; };
+		948D122A127E55180082650E /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
+		948D122B127E55180082650E /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
 		94E03232126A29B100A59FA5 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
@@ -145,6 +148,8 @@
 				94E03231126A29B100A59FA5 /* audio.c */,
 				256AC3F00F4B6AF500CF3369 /* server_Prefix.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
+				948D122A127E55180082650E /* md5.h */,
+				948D122B127E55180082650E /* md5.c */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -250,6 +255,7 @@
 				9471D63B126A15A30042C978 /* http_parser.c in Sources */,
 				94E03233126A29B100A59FA5 /* audio.c in Sources */,
 				94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */,
+				948D122C127E55180082650E /* md5.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

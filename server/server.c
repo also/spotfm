@@ -2,10 +2,12 @@
 #include "server.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "md5.h"
 
 #include "http_parser.h"
 
@@ -38,7 +40,7 @@ int on_client_header_field(http_parser *parser, const char *p, size_t len);
 int on_client_header_value(http_parser *parser, const char *p, size_t len);
 int on_client_headers_complete(http_parser *parser);
 
-static void handle_client_request(client *c);
+static void handle_client_request(client *c, char *body, size_t body_len);
 static char *get_header(client *c, char *name);
 
 static char * get_header(client *c, char *name) {
@@ -48,6 +50,57 @@ static char * get_header(client *c, char *name) {
 		}
 	}
 	return NULL;
+}
+
+static void ws_send(int fd, char *data) {
+	char b = 0x00;
+	send(fd, &b, 1, 0);
+	send(fd, data, strlen(data), 0);
+	b = 0xff;
+	send(fd, &b, 1, 0);
+}
+
+static uint32_t ws_parse_key(char *key) {
+	size_t len = strlen(key);
+
+	char nums[len + 1];
+	int num_count = 0;
+	int space_count = 0;
+
+	for (int i = 0; i < len; i++) {
+		char c = key[i];
+		if (c >= '0' && c <= '9') {
+			nums[num_count++] = c;
+		}
+		else if (c == ' ') {
+			space_count++;
+		}
+	}
+
+	nums[num_count] = '\0';
+	uint32_t n = strtoul(nums, NULL, 10);
+	uint32_t result = n / space_count;
+	return result;
+}
+
+static void ws_generate_signature(char *key1, char *key2, char *key3, char *buf) {
+	// oh god this is stupid
+	uint32_t num1 = htonl(ws_parse_key(key1));
+	uint32_t num2 = htonl(ws_parse_key(key2));
+
+	MD5_CTX mdContext;
+	MD5Init(&mdContext);
+	MD5Update(&mdContext, &num1, 4);
+	MD5Update(&mdContext, &num2, 4);
+	MD5Update(&mdContext, &key3, 8);
+	MD5Final(&mdContext);
+
+	memcpy(buf, mdContext.digest, 16);
+}
+
+static void send_client(client *c, char *data) {
+	send(c->fd, data, strlen(data), 0);
+	printf("%s", data);
 }
 
 void* server_loop(void *s) {
@@ -82,7 +135,7 @@ void* server_loop(void *s) {
 			close(sockfd);
 			return NULL;
 		}
-		
+
 		client *c = (client *) malloc(sizeof(client));
 		bzero(c, sizeof(client));
 		c->session = session;
@@ -124,7 +177,7 @@ void* run_client(void *x) {
 		nparsed = http_parse_requests(parser, buf, recved);
 		
 		if (c->headers_complete) {
-			handle_client_request(c);
+			handle_client_request(c, buf + nparsed, recved - nparsed);
 			fprintf(stderr, "handled!\n");
 			break;
 		}
@@ -204,13 +257,13 @@ int on_client_headers_complete(http_parser *parser) {
 	return 0;
 }
 
-static void handle_client_request(client *c) {
+static void handle_client_request(client *c, char *body, size_t body_len) {
 	char *not_found_response = "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\n\r\nfalse\n";
 	char *ok_response = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\ntrue\n";
 	
 	bool ok = false;
 	size_t len = strlen(c->path);
-	
+
 	if ((len == 27 || len == 41 || len == 57) && strstr(c->path, "play/") == c->path) {
 		fprintf(stderr, "sxxxxxxx_play\n");
 		sxxxxxxx_play(c->session, c->path + len - 22);
@@ -224,15 +277,64 @@ static void handle_client_request(client *c) {
 		sxxxxxxx_stop(c->session);
 		ok = true;
 	}
+	else if (!strcmp("monitor", c->path)) {
+		char *key1 = get_header(c, "Sec-WebSocket-Key1");
+		char *key2 = get_header(c, "Sec-WebSocket-Key2");
+		char key3[9];
+		char *host = get_header(c, "Host");
+		char *origin = get_header(c, "Origin");
+
+		if (body_len >= 8) {
+			memcpy(key3, body, 8);
+		}
+		else {
+			memcpy(key3, body, body_len);
+			// TODO just pretending this will always work
+			recv(c->fd, key3 + body_len, 8 - body_len, 0);
+		}
+		key3[8] = '\0';
+
+		if (key1 && key2) {
+			ok = true;
+
+			// TODO broken
+//			char signature[16];
+//			ws_generate_signature(key1, key2, key3, signature);
+
+			uint32_t num1 = htonl(ws_parse_key(key1));
+			uint32_t num2 = htonl(ws_parse_key(key2));
+
+			MD5_CTX mdContext;
+			MD5Init(&mdContext);
+			MD5Update(&mdContext, &num1, 4);
+			MD5Update(&mdContext, &num2, 4);
+			MD5Update(&mdContext, &key3, 8);
+			MD5Final(&mdContext);
+
+			char *status = "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
+							"Upgrade: WebSocket\r\n"
+							"Connection: Upgrade\r\n"
+							"Sec-WebSocket-Origin: ";
+			send_client(c, status);
+			send_client(c, origin);
+			send_client(c, "\r\nSec-WebSocket-Location: ws://");
+			send_client(c, host);
+			send_client(c, "/monitor\r\n\r\n");
+			send(c->fd, mdContext.digest, 16, 0);
+
+			ws_send(c->fd, "hi");
+			return;
+		}
+	}
 	
 	if (!ok) {
 		fprintf(stderr, "invalid url: %s\n", c->path);
-		send(c->fd, not_found_response, strlen(not_found_response), 0);
+		send_client(c, not_found_response);
 		close(c->fd);
 		c->fd = -1;
 	}
 	
-	send(c->fd, ok_response, strlen(ok_response), 0);
+	send_client(c, ok_response);
 	close(c->fd);
 	c->fd = -1;
 }
