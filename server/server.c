@@ -98,6 +98,38 @@ static void ws_generate_signature(char *key1, char *key2, char *key3, char *buf)
 	memcpy(buf, mdContext.digest, 16);
 }
 
+static void ws_parse_input(char *input, size_t input_len, char **output, size_t *output_len) {
+	
+}
+
+static void ws_run(int fd, char *data, size_t data_len) {
+	size_t len = 80*1024;
+	char buf[len];
+	ssize_t recved;
+	
+	char *output = NULL;
+	size_t output_len = 0;
+	
+	while (data_len > len) {
+		ws_parse_input(data, len, &output, &output_len);
+		data_len -= len;
+		data += len;
+	}
+	
+	if (data_len > 0) {
+		ws_parse_input(data, data_len, &output, &output_len);
+	}
+	
+	do {
+		recved = recv(c->fd, buf, len, 0);
+		if (recved < 0) {
+			/*  TODO Handle error. */
+			break;
+		}
+		ws_parse_input(buf, recved, &output, output_len);
+	} while (recved > 0);
+}
+
 static void send_client(client *c, char *data) {
 	send(c->fd, data, strlen(data), 0);
 	printf("%s", data);
