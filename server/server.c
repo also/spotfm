@@ -9,6 +9,16 @@
 
 #include "http_parser.h"
 
+#define MAX_HEADERS 20
+#define CURRENT_HEADER (&c->headers[c->header_count - 1])
+
+typedef struct header {
+	char *name;
+	size_t name_len;
+	char *value;
+	size_t value_len;
+} header;
+
 typedef struct client {
 	struct sxxxxxxx_session *session;
 	int fd;
@@ -17,10 +27,8 @@ typedef struct client {
 	char *path;
 	char *key1;
 	char *key2;
-	char *header_value;
-	size_t header_value_len;
-	char *header_name;
-	size_t header_name_len;
+	header headers[MAX_HEADERS];
+	int header_count;
 } client;
 
 void* run_client(void *sp);
@@ -31,6 +39,16 @@ int on_client_header_value(http_parser *parser, const char *p, size_t len);
 int on_client_headers_complete(http_parser *parser);
 
 static void handle_client_request(client *c);
+static char *get_header(client *c, char *name);
+
+static char * get_header(client *c, char *name) {
+	for (int i = 0; i < c->header_count; i++) {
+		if (!strcmp(name, c->headers[i].name)) {
+			return c->headers[i].value;
+		}
+	}
+	return NULL;
+}
 
 void* server_loop(void *s) {
 	sxxxxxxx_session *session = (sxxxxxxx_session *) s;
@@ -122,6 +140,14 @@ void* run_client(void *x) {
 	if (c->path) {
 		free(c->path);
 	}
+	for (int i; i < c->header_count; i++) {
+		if (c->headers[i].name) {
+			free(c->headers[i].name);
+		}
+		if (c->headers[i].value) {
+			free(c->headers[i].value);
+		}
+	}
 	free(c);
 	free(parser);
 	
@@ -139,10 +165,36 @@ int on_client_path(http_parser *parser, const char *p, size_t len) {
 }
 
 int on_client_header_field(http_parser *parser, const char *p, size_t len) {
+	client *c = (client *) parser->data;
+
+	if (c->header_count == 0 || CURRENT_HEADER->value_len > 0) {
+		// this is the first chunk of the name
+		c->header_count++;
+		if (c->header_count > MAX_HEADERS) {
+			c->header_count = MAX_HEADERS;
+			fprintf(stderr, "too many headers\n");
+			return 1;
+		}
+	}
+
+	size_t current_len = CURRENT_HEADER->name_len;
+	CURRENT_HEADER->name_len += len;
+	CURRENT_HEADER->name = realloc(CURRENT_HEADER->name, CURRENT_HEADER->name_len + 1);
+	memcpy(CURRENT_HEADER->name + current_len, p, len);
+	CURRENT_HEADER->name[CURRENT_HEADER->name_len] = '\0';
+
 	return 0;
 }
 
 int on_client_header_value(http_parser *parser, const char *p, size_t len) {
+	client *c = (client *) parser->data;
+
+	size_t current_len = CURRENT_HEADER->value_len;
+	CURRENT_HEADER->value_len += len;
+	CURRENT_HEADER->value = realloc(CURRENT_HEADER->value, CURRENT_HEADER->value_len + 1);
+	memcpy(CURRENT_HEADER->value + current_len, p, len);
+	CURRENT_HEADER->value[CURRENT_HEADER->value_len] = '\0';
+
 	return 0;
 }
 
