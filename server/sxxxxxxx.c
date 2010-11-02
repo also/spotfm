@@ -107,7 +107,10 @@ static void metadata_updated(sp_session *sess) {
 }
 
 static void play_token_lost(sp_session *sess) {
-	end_of_track(sess);
+	// we can lose the play token even if there is no track
+	if (g_session->track) {
+		end_of_track(sess);
+	}
 }
 
 static void log_message(sp_session *session, const char *data) {
@@ -247,7 +250,6 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 	}
 	
 	sp_link_release(link);
-	
 }
 
 void sxxxxxxx_resume(sxxxxxxx_session *session) {
