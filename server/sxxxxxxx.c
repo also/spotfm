@@ -66,6 +66,7 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	audio_fifo_t *af = &g_session->audiofifo;
 	if (g_session->state != PLAYING) {
 		g_session->state = PLAYING;
+		sxxxxxxx_notify_monitors(g_session, "playing");
 		fprintf(stderr, "playing\n");
 	}
 
@@ -123,6 +124,7 @@ static void message_to_user(sp_session *session, const char *data) {
 
 static void end_of_track(sp_session *sess) {
 	g_session->state = STOPPED;
+	sxxxxxxx_notify_monitors(g_session, "stopped");
 	sp_track_release(g_session->track);
 	g_session->track = NULL;
 	// TODO better to leak than to crash...
@@ -165,6 +167,7 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	bzero(s, sizeof(_sxxxxxxx_session));
 	s->track = NULL;
 	s->state = STOPPED;
+	sxxxxxxx_notify_monitors(s, "stopped");
 	g_session = s;
 	
 	spconfig.application_key_size = g_appkey_size;
@@ -233,6 +236,52 @@ void* main_loop(void *s) {
 	}
 }
 
+void sxxxxxxx_monitor(client *c) {
+	monitor_list_item *item = malloc(sizeof(monitor_list_item));
+	bzero(item, sizeof(monitor_list_item));
+	item->c = c;
+	c->data = item;
+	monitor_list_item *last = c->session->monitors;
+
+	if (!last) {
+		c->session->monitors = item;
+	}
+	else {
+		while (last->next) {
+			last = last->next;
+		}
+		last->next = item;
+		item->previous = last;
+	}
+	fprintf(stderr, "client %p added to monitor list\n", c);
+}
+
+void sxxxxxxx_monitor_end(client *c) {
+	monitor_list_item *item = c->data;
+
+	if (item->previous) {
+		item->previous->next = item->next;
+	}
+	else {
+		c->session->monitors = item->next;
+	}
+	if (item->next) {
+		item->next->previous = item->previous;
+	}
+	fprintf(stderr, "client %p removed from monitor list\n", c);
+	free(item);
+}
+
+void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, char *message) {
+	monitor_list_item *monitor = s->monitors;
+
+	while (monitor) {
+		ws_send(monitor->c->ws_client, message);
+		fprintf(stderr, "notified %p \"%s\"\n", monitor->c, message);
+		monitor = monitor->next;
+	}
+}
+
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 	char url[] = "spotify:track:XXXXXXXXXXXXXXXXXXXXXX";
 	memcpy(url + 14, id, 22);
@@ -245,6 +294,7 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 		sp_track_add_ref(track);
 		session->next_track = track;
 		session->state = BUFFERING;
+		sxxxxxxx_notify_monitors(session, "buffering");
 		fprintf(stderr, "loading\n");
 		try_to_play(session);
 	}
@@ -259,4 +309,5 @@ void sxxxxxxx_resume(sxxxxxxx_session *session) {
 void sxxxxxxx_stop(sxxxxxxx_session *session) {
 	sp_session_player_play(session->spotify_session, false);
 	session->state = STOPPED;
+	sxxxxxxx_notify_monitors(session, "stopped");
 }

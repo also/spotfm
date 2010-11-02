@@ -11,27 +11,7 @@
 
 #include "http_parser.h"
 
-#define MAX_HEADERS 20
 #define CURRENT_HEADER (&c->headers[c->header_count - 1])
-
-typedef struct header {
-	char *name;
-	size_t name_len;
-	char *value;
-	size_t value_len;
-} header;
-
-typedef struct client {
-	struct sxxxxxxx_session *session;
-	int fd;
-	bool headers_complete;
-	bool last_was_value;
-	char *path;
-	char *key1;
-	char *key2;
-	header headers[MAX_HEADERS];
-	int header_count;
-} client;
 
 void* run_client(void *sp);
 
@@ -43,7 +23,7 @@ int on_client_headers_complete(http_parser *parser);
 static void handle_client_request(client *c, char *body, size_t body_len);
 static char *get_header(client *c, char *name);
 
-static char * get_header(client *c, char *name) {
+static char *get_header(client *c, char *name) {
 	for (int i = 0; i < c->header_count; i++) {
 		if (!strcmp(name, c->headers[i].name)) {
 			return c->headers[i].value;
@@ -52,87 +32,8 @@ static char * get_header(client *c, char *name) {
 	return NULL;
 }
 
-static void ws_send(int fd, char *data) {
-	char b = 0x00;
-	send(fd, &b, 1, 0);
-	send(fd, data, strlen(data), 0);
-	b = 0xff;
-	send(fd, &b, 1, 0);
-}
-
-static uint32_t ws_parse_key(char *key) {
-	size_t len = strlen(key);
-
-	char nums[len + 1];
-	int num_count = 0;
-	int space_count = 0;
-
-	for (int i = 0; i < len; i++) {
-		char c = key[i];
-		if (c >= '0' && c <= '9') {
-			nums[num_count++] = c;
-		}
-		else if (c == ' ') {
-			space_count++;
-		}
-	}
-
-	nums[num_count] = '\0';
-	uint32_t n = strtoul(nums, NULL, 10);
-	uint32_t result = n / space_count;
-	return result;
-}
-
-static void ws_generate_signature(char *key1, char *key2, char *key3, char *buf) {
-	// oh god this is stupid
-	uint32_t num1 = htonl(ws_parse_key(key1));
-	uint32_t num2 = htonl(ws_parse_key(key2));
-
-	MD5_CTX mdContext;
-	MD5Init(&mdContext);
-	MD5Update(&mdContext, &num1, 4);
-	MD5Update(&mdContext, &num2, 4);
-	MD5Update(&mdContext, &key3, 8);
-	MD5Final(&mdContext);
-
-	memcpy(buf, mdContext.digest, 16);
-}
-
-static void ws_parse_input(char *input, size_t input_len, char **output, size_t *output_len) {
-	
-}
-
-static void ws_run(int fd, char *data, size_t data_len) {
-	size_t len = 80*1024;
-	char buf[len];
-	ssize_t recved;
-	
-	char *output = NULL;
-	size_t output_len = 0;
-	
-	while (data_len > len) {
-		ws_parse_input(data, len, &output, &output_len);
-		data_len -= len;
-		data += len;
-	}
-	
-	if (data_len > 0) {
-		ws_parse_input(data, data_len, &output, &output_len);
-	}
-	
-	do {
-		recved = recv(c->fd, buf, len, 0);
-		if (recved < 0) {
-			/*  TODO Handle error. */
-			break;
-		}
-		ws_parse_input(buf, recved, &output, output_len);
-	} while (recved > 0);
-}
-
 static void send_client(client *c, char *data) {
 	send(c->fd, data, strlen(data), 0);
-	printf("%s", data);
 }
 
 void* server_loop(void *s) {
@@ -289,6 +190,11 @@ int on_client_headers_complete(http_parser *parser) {
 	return 0;
 }
 
+static int handle_ws_message(ws_client *c, const char *at, size_t length) {
+	printf("got message. \"%s\" (%ld)\n", at, length);
+	return 0;
+}
+
 static void handle_client_request(client *c, char *body, size_t body_len) {
 	char *not_found_response = "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\n\r\nfalse\n";
 	char *ok_response = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\ntrue\n";
@@ -329,6 +235,12 @@ static void handle_client_request(client *c, char *body, size_t body_len) {
 		if (key1 && key2) {
 			ok = true;
 
+			ws_client ws_client;
+			ws_client.data = c;
+			ws_client.fd = c->fd;
+			ws_client.callback = handle_ws_message;
+			c->ws_client = &ws_client;
+
 			// TODO broken
 //			char signature[16];
 //			ws_generate_signature(key1, key2, key3, signature);
@@ -354,7 +266,11 @@ static void handle_client_request(client *c, char *body, size_t body_len) {
 			send_client(c, "/monitor\r\n\r\n");
 			send(c->fd, mdContext.digest, 16, 0);
 
-			ws_send(c->fd, "hi");
+			ws_send(&ws_client, "hi");
+			sxxxxxxx_monitor(c);
+			// TODO if body_len < 8
+			ws_run(&ws_client, c->fd, body + 8, body_len - 8);
+			sxxxxxxx_monitor_end(c);
 			return;
 		}
 	}
