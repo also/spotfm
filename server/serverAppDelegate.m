@@ -1,10 +1,9 @@
 #import "serverAppDelegate.h"
 
-#import "sxxxxxxx.h"
-
 @implementation serverAppDelegate
 
 @synthesize window;
+@synthesize statusMenu;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	char *serviceName = "Spotify";
@@ -43,11 +42,30 @@
 	strncpy(password, outData, length);
 	password[length] = '\0';
 
-	sxxxxxxx_session *session;
 	sxxxxxxx_init(&session, username, password);
+	[self showStatusItem];
 	sxxxxxxx_run(session, TRUE);
 
 	SecKeychainItemFreeContent(&list, outData);
+}
+
+- (void) showStatusItem {
+	NSStatusBar *bar = [NSStatusBar systemStatusBar];
+
+    NSStatusItem *statusItem = [bar statusItemWithLength:NSVariableStatusItemLength];
+    [statusItem retain];
+
+    [statusItem setTitle: NSLocalizedString(@"•㎙",@"")];
+    [statusItem setHighlightMode:YES];
+	[statusItem setMenu:statusMenu];
+}
+
+- (IBAction) stop:(id)sender {
+	sxxxxxxx_stop(session);
+}
+
+- (IBAction) quit:(id)sender {
+	[NSApp terminate:self];
 }
 
 @end

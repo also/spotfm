@@ -32,4 +32,3 @@ typedef struct sxxxxxxx_session {
 
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id);
 void sxxxxxxx_resume(sxxxxxxx_session *session);
-void sxxxxxxx_stop(sxxxxxxx_session *session);
