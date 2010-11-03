@@ -2,8 +2,12 @@
     display: none;
 }
 
-tbody td.playbuttonCell{
-    background-image:url('http://static.ryanberdeen.com/spotify-icon-small.png') !important;
-    background-repeat:no-repeat !important;
-    background-position:center !important;
+tbody tr:not([data-spotify-unresolvable]) td.playbuttonCell {
+    background-image: url('http://static.ryanberdeen.com/spotify-icon-small.png') !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+}
+
+tbody tr td.playbuttonCell {
+    min-width: 17px !important;
 }
