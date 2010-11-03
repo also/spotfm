@@ -21,7 +21,8 @@
 			<key>Start</key>
 			<array>
 				<string>mootools-core-1.3-full-nocompat-yc.js</string>
-				<string>logic.js</string>
+				<string>tab.js</string>
+				<string>lastfm.js</string>
 			</array>
 		</dict>
 		<key>Stylesheets</key>
