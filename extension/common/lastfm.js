@@ -1,6 +1,6 @@
 document.window.addEvent('click', function(theEvent) {
     var target = theEvent.target;
-    var parents = target.getParents('.candyStriped');
+    var parents = target.getParents('.candyStriped, .tracklist');
     if (parents.length !== 0) {
         // get the name of the track
         var trElt = target.getParent('tr');
