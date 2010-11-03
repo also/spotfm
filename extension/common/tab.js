@@ -1,6 +1,5 @@
 var spotfm = {
     play: function (trackId) {
-        console.log('playing ', trackId);
         var audioRequest = new Request({url: "http://localhost:9999/play/" + trackId, method:'get'});
         audioRequest.send();
     },
