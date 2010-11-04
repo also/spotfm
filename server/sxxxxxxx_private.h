@@ -31,4 +31,3 @@ typedef struct sxxxxxxx_session {
 } _sxxxxxxx_session;
 
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id);
-void sxxxxxxx_resume(sxxxxxxx_session *session);

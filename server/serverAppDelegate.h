@@ -14,6 +14,7 @@
 - (void) showStatusItem;
 
 - (IBAction) stop:(id)sender;
+- (IBAction) resume:(id)sender;
 - (IBAction) quit:(id)sender;
 
 @end

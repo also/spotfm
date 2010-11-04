@@ -64,6 +64,10 @@
 	sxxxxxxx_stop(session);
 }
 
+- (IBAction) resume:(id)sender {
+	sxxxxxxx_resume(session);
+}
+
 - (IBAction) quit:(id)sender {
 	[NSApp terminate:self];
 }
