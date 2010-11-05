@@ -12,10 +12,10 @@
 #define WS_MESSAGE_START '\0'
 #define WS_MESSAGE_END '\xff'
 
-void ws_send(ws_client *c, const char *data) {
+void ws_send(ws_client *c, const char *data, size_t len) {
 	char b = '\0';
 	send(c->fd, &b, 1, 0);
-	send(c->fd, data, strlen(data), 0);
+	send(c->fd, data, len, 0);
 	b = '\xff';
 	send(c->fd, &b, 1, 0);
 }

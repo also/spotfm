@@ -22,12 +22,16 @@ html {
     border-radius: 3px;
     font-weight: bold;
 }
+
+#track {
+    font-weight: bold;
+}
 </style>
 <script src="mootools-core-1.3-full-nocompat-yc.js"></script>
 <script src="core.js"></script>
 <script type="text/javascript">
 function setStatus(status) {
-    $('status').set('html', status);
+    //$('status').set('html', status);
 }
 var ws = new WebSocket('ws://localhost:9999/monitor');
 ws.onopen = function () {
@@ -43,13 +47,25 @@ ws.onclose = function () {
 };
 
 ws.onmessage = function (a) {
-   setStatus(a.data);
+    setStatus(a.data);
+    if (a.data.length > 0) {
+        var j = JSON.parse(a.data);
+        if (j.action == 'playing') {
+            $('track').set('html', j.track_name);
+            $('album').set('html', j.album_name);
+            $('artist').set('html', j.artist_name);
+        }
+        console.log(j);
+    }
 };
 console.log(ws);
 </script>
 </head>
 <body>
-<p><strong>Status:</strong> <span id="status"></span></p>
+<!--<p><strong>Status:</strong> <span id="status"></span></p>-->
+<div id="track"></div>
+<div id="album"></div>
+<div id="artist"></div>
 
 <p><span class="button" id="stop">stop</span>
 <span class="button" id="resume">resume</span></p>

@@ -20,6 +20,6 @@ struct ws_client {
 uint32_t ws_parse_key(const char *key);
 void ws_generate_signature(const char *key1, const char *key2, const char *key3, char *buf);
 void ws_run(ws_client *parser, int fd, const char *data, size_t data_len);
-void ws_send(ws_client *c, const char *data);
+void ws_send(ws_client *c, const char *data, size_t len);
 
 #endif

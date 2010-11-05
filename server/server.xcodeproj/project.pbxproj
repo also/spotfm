@@ -21,11 +21,11 @@
 		948D122C127E55180082650E /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 948D122B127E55180082650E /* md5.c */; };
 		948D1506127FA4810082650E /* web_socket.c in Sources */ = {isa = PBXBuildFile; fileRef = 948D1505127FA4810082650E /* web_socket.c */; };
 		9499E970128385850002B79F /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499E96F128385850002B79F /* WebKit.framework */; };
-		9499E98D128389F00002B79F /* core.js in Sources */ = {isa = PBXBuildFile; fileRef = 9499E98B128389F00002B79F /* core.js */; };
-		9499E98E128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js in Sources */ = {isa = PBXBuildFile; fileRef = 9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */; };
 		9499E98F128389FE0002B79F /* core.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98B128389F00002B79F /* core.js */; };
 		9499E990128389FE0002B79F /* mootools-core-1.3-full-nocompat-yc.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */; };
 		9499E99A12838CD60002B79F /* controls.html in Resources */ = {isa = PBXBuildFile; fileRef = 9499E99612838CBB0002B79F /* controls.html */; };
+		9499EAC21283B8CF0002B79F /* libyajl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499EAC11283B8CF0002B79F /* libyajl.dylib */; };
+		9499EB0B1283B9520002B79F /* libyajl.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9499EAC11283B8CF0002B79F /* libyajl.dylib */; };
 		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
@@ -38,6 +38,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				9499EB0B1283B9520002B79F /* libyajl.dylib in Copy Frameworks */,
 				9471D686126A1ADD0042C978 /* libspotify.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
@@ -76,6 +77,7 @@
 		9499E98B128389F00002B79F /* core.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = core.js; sourceTree = "<group>"; };
 		9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mootools-core-1.3-full-nocompat-yc.js"; sourceTree = "<group>"; };
 		9499E99612838CBB0002B79F /* controls.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = controls.html; sourceTree = "<group>"; };
+		9499EAC11283B8CF0002B79F /* libyajl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libyajl.dylib; path = "yajl/yajl-1.0.11/lib/libyajl.dylib"; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
 		94E03232126A29B100A59FA5 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 				94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */,
 				943E8E4A127DCC86006894D3 /* Security.framework in Frameworks */,
 				9499E970128385850002B79F /* WebKit.framework in Frameworks */,
+				9499EAC21283B8CF0002B79F /* libyajl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +187,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9499EAC11283B8CF0002B79F /* libyajl.dylib */,
 				943E8E49127DCC86006894D3 /* Security.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
@@ -289,8 +293,6 @@
 				94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */,
 				948D122C127E55180082650E /* md5.c in Sources */,
 				948D1506127FA4810082650E /* web_socket.c in Sources */,
-				9499E98D128389F00002B79F /* core.js in Sources */,
-				9499E98E128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +335,10 @@
 				GCC_PREFIX_HEADER = server_Prefix.pch;
 				INFOPLIST_FILE = "server-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/yajl/yajl-1.0.11/lib\"",
+				);
 				PRODUCT_NAME = SXXXXXXX;
 			};
 			name = Debug;
@@ -351,6 +357,10 @@
 				GCC_PREFIX_HEADER = server_Prefix.pch;
 				INFOPLIST_FILE = "server-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/yajl/yajl-1.0.11/lib\"",
+				);
 				PRODUCT_NAME = SXXXXXXX;
 			};
 			name = Release;
@@ -358,12 +368,16 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "http-parser";
+				HEADER_SEARCH_PATHS = (
+					"yajl/yajl-1.0.11/include",
+					"http-parser",
+				);
+				LIBRARY_SEARCH_PATHS = "yajl/yajl-1.0.11/lib";
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
@@ -373,11 +387,15 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "http-parser";
+				HEADER_SEARCH_PATHS = (
+					"yajl/yajl-1.0.11/include",
+					"http-parser",
+				);
+				LIBRARY_SEARCH_PATHS = "yajl/yajl-1.0.11/lib";
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
 			};

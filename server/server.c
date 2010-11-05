@@ -266,7 +266,6 @@ static void handle_client_request(client *c, char *body, size_t body_len) {
 			send_client(c, "/monitor\r\n\r\n");
 			send(c->fd, mdContext.digest, 16, 0);
 
-			ws_send(&ws_client, "hi");
 			sxxxxxxx_monitor(c);
 			// TODO if body_len < 8
 			ws_run(&ws_client, c->fd, body + 8, body_len - 8);

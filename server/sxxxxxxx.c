@@ -5,6 +5,8 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 
+#include <yajl/yajl_gen.h>
+
 #include "appkey.c"
 
 #include "server.h"
@@ -17,6 +19,8 @@ static void play_token_lost(sp_session *sess);
 static void log_message(sp_session *session, const char *data);
 static void message_to_user(sp_session *session, const char *data);
 static void end_of_track(sp_session *sess);
+
+static void set_state(sxxxxxxx_session *s, char *state);
 
 static sp_session_callbacks session_callbacks = {
 	.logged_in = &logged_in,
@@ -66,8 +70,7 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	audio_fifo_t *af = &g_session->audiofifo;
 	if (g_session->state != PLAYING) {
 		g_session->state = PLAYING;
-		sxxxxxxx_notify_monitors(g_session, "playing");
-		fprintf(stderr, "playing\n");
+		set_state(g_session, "playing");
 	}
 
 	audio_fifo_data_t *afd;
@@ -124,7 +127,7 @@ static void message_to_user(sp_session *session, const char *data) {
 
 static void end_of_track(sp_session *sess) {
 	g_session->state = STOPPED;
-	sxxxxxxx_notify_monitors(g_session, "stopped");
+	set_state(g_session, "stopped");
 	sp_track_release(g_session->track);
 	g_session->track = NULL;
 	// TODO better to leak than to crash...
@@ -147,6 +150,7 @@ static void try_to_play(sxxxxxxx_session *session) {
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
 		fprintf(stderr, "failed loading player: %s\n", sp_error_message(error));
+		set_state(g_session, "playback_failed");
 		pthread_mutex_unlock(&session->spotify_mutex);
 		return;
 	}
@@ -154,7 +158,35 @@ static void try_to_play(sxxxxxxx_session *session) {
 		audio_fifo_flush(&g_session->audiofifo);
 		audio_reset(&g_session->audiofifo);
 		sp_session_player_play(session->spotify_session, true);
-		fprintf(stderr, "buffering\n");
+
+		yajl_gen_config conf = { false };
+		yajl_gen g;
+		g = yajl_gen_alloc(&conf, NULL);
+		yajl_gen_map_open(g);
+
+		yajl_gen_string(g, (unsigned char *) "action", 6);
+		yajl_gen_string(g, (unsigned char *) "playing", 7);
+
+		yajl_gen_string(g, (unsigned char *) "track_name", 10);
+		const char *track_name = sp_track_name(session->track);
+		yajl_gen_string(g, track_name, strlen(track_name));
+
+		sp_album* album = sp_track_album(session->track);
+		yajl_gen_string(g, (unsigned char *) "album_name", 10);
+		const char *album_name = sp_album_name(album);
+		yajl_gen_string(g, album_name, strlen(album_name));
+
+		sp_artist *artist = sp_track_artist(session->track, 0);
+		yajl_gen_string(g, (unsigned char *) "artist_name", 11);
+		const char *artist_name = sp_artist_name(artist);
+		yajl_gen_string(g, artist_name, strlen(artist_name));
+
+		yajl_gen_map_close(g);
+		const unsigned char *buf;
+		unsigned int len;
+		yajl_gen_get_buf(g, &buf, &len);
+		sxxxxxxx_notify_monitors(g_session, buf, len);
+		yajl_gen_clear(g);
 	}
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
@@ -167,7 +199,7 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	bzero(s, sizeof(_sxxxxxxx_session));
 	s->track = NULL;
 	s->state = STOPPED;
-	sxxxxxxx_notify_monitors(s, "stopped");
+	set_state(s, "stopped");
 	g_session = s;
 	
 	spconfig.application_key_size = g_appkey_size;
@@ -253,6 +285,10 @@ void sxxxxxxx_monitor(client *c) {
 		last->next = item;
 		item->previous = last;
 	}
+
+	if (c->session->last_monitor_message) {
+		ws_send(c->ws_client, c->session->last_monitor_message, c->session->last_monitor_message_len);
+	}
 	fprintf(stderr, "client %p added to monitor list\n", c);
 }
 
@@ -272,14 +308,34 @@ void sxxxxxxx_monitor_end(client *c) {
 	free(item);
 }
 
-void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, char *message) {
+void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t len) {
 	monitor_list_item *monitor = s->monitors;
 
+	s->last_monitor_message = realloc(s->last_monitor_message, strlen(message) + 1);
+	memcpy(s->last_monitor_message, message, strlen(message) + 1);
+
 	while (monitor) {
-		ws_send(monitor->c->ws_client, message);
+		ws_send(monitor->c->ws_client, message, len);
 		fprintf(stderr, "notified %p \"%s\"\n", monitor->c, message);
 		monitor = monitor->next;
 	}
+}
+
+void set_state(sxxxxxxx_session *s, char *state) {
+	yajl_gen_config conf = { false };
+	yajl_gen g;
+	g = yajl_gen_alloc(&conf, NULL);
+	yajl_gen_map_open(g);
+	yajl_gen_string(g, "action", 6);
+	yajl_gen_string(g, "state_change", 12);
+	yajl_gen_string(g, "state", 5);
+	yajl_gen_string(g, state, strlen(state));
+	yajl_gen_map_close(g);
+	const unsigned char *buf;
+	unsigned int len;
+	yajl_gen_get_buf(g, &buf, &len);
+	sxxxxxxx_notify_monitors(s, buf, len);
+	yajl_gen_clear(g);
 }
 
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
@@ -294,7 +350,7 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 		sp_track_add_ref(track);
 		session->next_track = track;
 		session->state = BUFFERING;
-		sxxxxxxx_notify_monitors(session, "buffering");
+		set_state(session, "buffering");
 		fprintf(stderr, "loading\n");
 		try_to_play(session);
 	}
@@ -309,5 +365,5 @@ void sxxxxxxx_resume(sxxxxxxx_session *session) {
 void sxxxxxxx_stop(sxxxxxxx_session *session) {
 	sp_session_player_play(session->spotify_session, false);
 	session->state = STOPPED;
-	sxxxxxxx_notify_monitors(session, "stopped");
+	set_state(session, "stopped");
 }

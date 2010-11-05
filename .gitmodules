@@ -1,3 +1,6 @@
 [submodule "server/http-parser"]
 	path = server/http-parser
 	url = git://github.com/ry/http-parser.git
+[submodule "server/yajl"]
+	path = server/yajl
+	url = https://github.com/lloyd/yajl.git
