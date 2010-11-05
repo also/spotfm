@@ -113,7 +113,8 @@ static void metadata_updated(sp_session *sess) {
 static void play_token_lost(sp_session *sess) {
 	// we can lose the play token even if there is no track
 	if (g_session->track) {
-		end_of_track(sess);
+		g_session->state = STOPPED;
+		set_state(g_session, "stopped");
 	}
 }
 
@@ -127,6 +128,7 @@ static void message_to_user(sp_session *session, const char *data) {
 
 static void end_of_track(sp_session *sess) {
 	g_session->state = STOPPED;
+	set_state(g_session, "end_of_track");
 	set_state(g_session, "stopped");
 	sp_track_release(g_session->track);
 	g_session->track = NULL;
