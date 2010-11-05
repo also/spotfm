@@ -4,6 +4,14 @@ var spotfm = {
         audioRequest.send();
     },
 
+    stop: function () {
+        new Request({url: 'http://localhost:9999/stop'}).send();
+    },
+
+    resume: function () {
+        new Request({url: 'http://localhost:9999/resume'}).send();
+    },
+
     resolveAndPlay: function (trackInfo, options) {
         options = options || {};
         var query = [escape(trackInfo.artist), escape(trackInfo.track)].join('+');

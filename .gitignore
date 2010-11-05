@@ -1,6 +1,6 @@
 server/build
-extension/spotfm.safariextension/tab.js
-extension/chrome/tab.js
+extension/spotfm.safariextension/core.js
+extension/chrome/core.js
 extension/spotfm.safariextension/lastfm.js
 extension/chrome/lastfm.js
 extension/spotfm.safariextension/mootools-core-1.3-full-nocompat-yc.js

@@ -4,6 +4,7 @@
 
 @synthesize window;
 @synthesize statusMenu;
+@synthesize webView;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	char *serviceName = "Spotify";
@@ -42,11 +43,14 @@
 	strncpy(password, outData, length);
 	password[length] = '\0';
 
+	SecKeychainItemFreeContent(&list, outData);
+
+	[webView setUIDelegate:self];
+	[webView setEditingDelegate:self];
+
 	sxxxxxxx_init(&session, username, password);
 	[self showStatusItem];
 	sxxxxxxx_run(session, TRUE);
-
-	SecKeychainItemFreeContent(&list, outData);
 }
 
 - (void) showStatusItem {
@@ -58,6 +62,23 @@
     [statusItem setTitle: NSLocalizedString(@"•㎙",@"")];
     [statusItem setHighlightMode:YES];
 	[statusItem setMenu:statusMenu];
+}
+
+- (IBAction) showControls:(id)sender {
+	NSString* controlsFile = [[NSBundle mainBundle] pathForResource:@"controls" ofType:@"html"];
+	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:controlsFile]]];
+	[window makeKeyAndOrderFront:sender];
+	[NSApp activateIgnoringOtherApps:TRUE];
+}
+
+- (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
+	// disable right-click context menu
+	return NULL;
+}
+
+- (BOOL)webView:(WebView *)webView shouldChangeSelectedDOMRange:(DOMRange *)currentRange toDOMRange:(DOMRange *)proposedRange affinity:(NSSelectionAffinity)selectionAffinity stillSelecting:(BOOL)flag {
+	// disable text selection
+	return NO;
 }
 
 - (IBAction) stop:(id)sender {

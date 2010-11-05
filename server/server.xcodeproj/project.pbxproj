@@ -20,6 +20,12 @@
 		9471D686126A1ADD0042C978 /* libspotify.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9471D536126A06C80042C978 /* libspotify.framework */; };
 		948D122C127E55180082650E /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 948D122B127E55180082650E /* md5.c */; };
 		948D1506127FA4810082650E /* web_socket.c in Sources */ = {isa = PBXBuildFile; fileRef = 948D1505127FA4810082650E /* web_socket.c */; };
+		9499E970128385850002B79F /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499E96F128385850002B79F /* WebKit.framework */; };
+		9499E98D128389F00002B79F /* core.js in Sources */ = {isa = PBXBuildFile; fileRef = 9499E98B128389F00002B79F /* core.js */; };
+		9499E98E128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js in Sources */ = {isa = PBXBuildFile; fileRef = 9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */; };
+		9499E98F128389FE0002B79F /* core.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98B128389F00002B79F /* core.js */; };
+		9499E990128389FE0002B79F /* mootools-core-1.3-full-nocompat-yc.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */; };
+		9499E99A12838CD60002B79F /* controls.html in Resources */ = {isa = PBXBuildFile; fileRef = 9499E99612838CBB0002B79F /* controls.html */; };
 		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
@@ -66,6 +72,10 @@
 		948D122B127E55180082650E /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
 		948D1504127FA4810082650E /* web_socket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = web_socket.h; sourceTree = "<group>"; };
 		948D1505127FA4810082650E /* web_socket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = web_socket.c; sourceTree = "<group>"; };
+		9499E96F128385850002B79F /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		9499E98B128389F00002B79F /* core.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = core.js; sourceTree = "<group>"; };
+		9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mootools-core-1.3-full-nocompat-yc.js"; sourceTree = "<group>"; };
+		9499E99612838CBB0002B79F /* controls.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = controls.html; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
 		94E03232126A29B100A59FA5 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
@@ -82,6 +92,7 @@
 				9471D537126A06C80042C978 /* libspotify.framework in Frameworks */,
 				94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */,
 				943E8E4A127DCC86006894D3 /* Security.framework in Frameworks */,
+				9499E970128385850002B79F /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +137,7 @@
 		29B97314FDCFA39411CA2CEA /* server */ = {
 			isa = PBXGroup;
 			children = (
+				9499E98A128389F00002B79F /* js */,
 				9471D5F7126A15A30042C978 /* http-parser */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -177,6 +189,7 @@
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 				9471D536126A06C80042C978 /* libspotify.framework */,
 				94E03253126A2B6800A59FA5 /* AudioToolbox.framework */,
+				9499E96F128385850002B79F /* WebKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -189,6 +202,17 @@
 			);
 			path = "http-parser";
 			sourceTree = "<group>";
+		};
+		9499E98A128389F00002B79F /* js */ = {
+			isa = PBXGroup;
+			children = (
+				9499E99612838CBB0002B79F /* controls.html */,
+				9499E98B128389F00002B79F /* core.js */,
+				9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */,
+			);
+			name = js;
+			path = ../js;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -219,6 +243,7 @@
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "server" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
@@ -240,6 +265,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9499E99A12838CD60002B79F /* controls.html in Resources */,
+				9499E98F128389FE0002B79F /* core.js in Resources */,
+				9499E990128389FE0002B79F /* mootools-core-1.3-full-nocompat-yc.js in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 			);
@@ -261,6 +289,8 @@
 				94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */,
 				948D122C127E55180082650E /* md5.c in Sources */,
 				948D1506127FA4810082650E /* web_socket.c in Sources */,
+				9499E98D128389F00002B79F /* core.js in Sources */,
+				9499E98E128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
