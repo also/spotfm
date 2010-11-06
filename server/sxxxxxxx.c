@@ -365,7 +365,13 @@ void sxxxxxxx_resume(sxxxxxxx_session *session) {
 	// TODO what is necessary?
 	audio_fifo_flush(&g_session->audiofifo);
 	audio_reset(&g_session->audiofifo);
-	sp_session_player_play(session->spotify_session, true);
+	if (session->track) {
+		sp_session_player_play(session->spotify_session, true);
+	}
+	else {
+		send_event(session, "play");
+	}
+
 }
 
 void sxxxxxxx_stop(sxxxxxxx_session *session) {

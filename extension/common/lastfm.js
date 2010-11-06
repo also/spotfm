@@ -12,6 +12,11 @@ function connect() {
                 spotfm.advance();
             }
         }
+        else if (j.event == 'play') {
+            if (currentTrElt) {
+                playTrElt(currentTrElt);
+            }
+        }
     };
 
     ws.onopen = function () {
@@ -51,10 +56,10 @@ document.window.addEvent('click', function(theEvent) {
 });
 
 function playTrElt(trElt) {
-    trElt.addClass('spotfmPlaying');
     if (currentTrElt) {
         currentTrElt.removeClass('spotfmPlaying');
     }
+    trElt.addClass('spotfmPlaying');
     // get the last link in the cell (if more than one, first is artist)
     var urlElement = trElt.getChildren('td.subjectCell a').pop();
     var url = urlElement.get('href');
