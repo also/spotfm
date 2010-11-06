@@ -1,5 +1,7 @@
 #import "serverAppDelegate.h"
 
+#import <IOKit/hidsystem/ev_keymap.h>
+
 @implementation serverAppDelegate
 
 @synthesize window;
@@ -47,6 +49,9 @@
 
 	[webView setUIDelegate:self];
 	[webView setEditingDelegate:self];
+	
+	NSString* controlsFile = [[NSBundle mainBundle] pathForResource:@"controls" ofType:@"html"];
+	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:controlsFile]]];
 
 	sxxxxxxx_init(&session, username, password);
 	[self showStatusItem];
@@ -65,8 +70,6 @@
 }
 
 - (IBAction) showControls:(id)sender {
-	NSString* controlsFile = [[NSBundle mainBundle] pathForResource:@"controls" ofType:@"html"];
-	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:controlsFile]]];
 	[window makeKeyAndOrderFront:sender];
 	[NSApp activateIgnoringOtherApps:TRUE];
 }
@@ -91,6 +94,27 @@
 
 - (IBAction) quit:(id)sender {
 	[NSApp terminate:self];
+}
+
+- (void)mediaKeyEvent:(int)key state:(BOOL)state repeat:(BOOL)repeat {
+	if (state) {
+		return;
+	}
+	switch (key) {
+		case NX_KEYTYPE_PLAY:
+			NSLog(@"keyboard play");
+			sxxxxxxx_toggle_play(session);
+			break;
+			
+		case NX_KEYTYPE_FAST:
+			NSLog(@"keyboard advance");
+			break;
+			
+		case NX_KEYTYPE_REWIND:
+			sxxxxxxx_previous(session);
+			NSLog(@"keyboard rewind");
+			break;
+	}
 }
 
 @end

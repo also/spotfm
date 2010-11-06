@@ -21,5 +21,6 @@
 - (IBAction) stop:(id)sender;
 - (IBAction) resume:(id)sender;
 - (IBAction) quit:(id)sender;
+- (void) mediaKeyEvent:(int)key state:(BOOL)state repeat:(BOOL)repeat;
 
 @end

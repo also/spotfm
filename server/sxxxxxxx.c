@@ -112,10 +112,8 @@ static void metadata_updated(sp_session *sess) {
 
 static void play_token_lost(sp_session *sess) {
 	// we can lose the play token even if there is no track
-	if (g_session->track) {
-		g_session->state = STOPPED;
-		set_state(g_session, "stopped");
-	}
+	g_session->state = STOPPED;
+	set_state(g_session, "stopped");
 }
 
 static void log_message(sp_session *session, const char *data) {
@@ -130,7 +128,6 @@ static void end_of_track(sp_session *sess) {
 	g_session->state = STOPPED;
 	set_state(g_session, "end_of_track");
 	set_state(g_session, "stopped");
-	sp_track_release(g_session->track);
 	g_session->track = NULL;
 	// TODO better to leak than to crash...
 	//sp_session_player_unload(sess);
@@ -166,7 +163,7 @@ static void try_to_play(sxxxxxxx_session *session) {
 		g = yajl_gen_alloc(&conf, NULL);
 		yajl_gen_map_open(g);
 
-		yajl_gen_string(g, (unsigned char *) "action", 6);
+		yajl_gen_string(g, (unsigned char *) "event", 5);
 		yajl_gen_string(g, (unsigned char *) "playing", 7);
 
 		yajl_gen_string(g, (unsigned char *) "track_name", 10);
@@ -182,6 +179,10 @@ static void try_to_play(sxxxxxxx_session *session) {
 		yajl_gen_string(g, (unsigned char *) "artist_name", 11);
 		const char *artist_name = sp_artist_name(artist);
 		yajl_gen_string(g, artist_name, strlen(artist_name));
+		
+		int duration = sp_track_duration(session->track);
+		yajl_gen_string(g, (unsigned char *) "track_duration", 14);
+		yajl_gen_integer(g, duration);
 
 		yajl_gen_map_close(g);
 		const unsigned char *buf;
@@ -323,24 +324,35 @@ void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t l
 	}
 }
 
-void set_state(sxxxxxxx_session *s, char *state) {
+yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event) {
 	yajl_gen_config conf = { false };
 	yajl_gen g;
 	g = yajl_gen_alloc(&conf, NULL);
 	yajl_gen_map_open(g);
-	yajl_gen_string(g, "action", 6);
-	yajl_gen_string(g, "state_change", 12);
-	yajl_gen_string(g, "state", 5);
-	yajl_gen_string(g, state, strlen(state));
+	yajl_gen_string(g, "event", 5);
+	yajl_gen_string(g, event, strlen(event));
+	return g;
+}
+
+void finish_send_event(sxxxxxxx_session *s, yajl_gen g) {
 	yajl_gen_map_close(g);
 	const unsigned char *buf;
 	unsigned int len;
 	yajl_gen_get_buf(g, &buf, &len);
 	sxxxxxxx_notify_monitors(s, buf, len);
-	yajl_gen_clear(g);
+	yajl_gen_clear(g);	
+}
+
+void set_state(sxxxxxxx_session *s, char *state) {
+	yajl_gen g = begin_event_json(s, "state_change");
+	yajl_gen_string(g, "state", 5);
+	yajl_gen_string(g, state, strlen(state));
+	finish_send_event(s, g);
 }
 
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
+	sxxxxxxx_stop(session);
+
 	char url[] = "spotify:track:XXXXXXXXXXXXXXXXXXXXXX";
 	memcpy(url + 14, id, 22);
 	sp_link *link = sp_link_create_from_string(url);
@@ -361,11 +373,48 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 }
 
 void sxxxxxxx_resume(sxxxxxxx_session *session) {
+	// TODO what is necessary?
+	audio_fifo_flush(&g_session->audiofifo);
+	audio_reset(&g_session->audiofifo);
 	sp_session_player_play(session->spotify_session, true);
 }
 
 void sxxxxxxx_stop(sxxxxxxx_session *session) {
+	// TODO what is necessary?
+	// TODO drops a buffer full of audio
+	audio_fifo_flush(&g_session->audiofifo);
+	audio_reset(&g_session->audiofifo);
 	sp_session_player_play(session->spotify_session, false);
 	session->state = STOPPED;
 	set_state(session, "stopped");
 }
+
+void sxxxxxxx_toggle_play(sxxxxxxx_session *session) {
+	if (session->state == STOPPED) {
+		sxxxxxxx_resume(session);
+	}
+	else {
+		sxxxxxxx_stop(session);
+	}
+}
+
+void sxxxxxxx_seek(sxxxxxxx_session *session, int offset) {
+	// TODO what is necessary?
+	audio_fifo_flush(&g_session->audiofifo);
+	audio_reset(&g_session->audiofifo);
+	sp_session_player_seek(session->spotify_session, offset);
+	yajl_gen g = begin_event_json(session, "seek");
+	yajl_gen_string(g, "offset", 6);
+	yajl_gen_integer(g, offset);
+	finish_send_event(session, g);
+}
+
+void sxxxxxxx_previous(sxxxxxxx_session *session) {
+	sxxxxxxx_seek(session, 0);
+	// TODO if at beginning of song, send "previous track" event
+}
+
+void sxxxxxxx_next(sxxxxxxx_session *session) {
+	// TODO
+}
+
