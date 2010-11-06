@@ -287,9 +287,6 @@ void sxxxxxxx_monitor(client *c) {
 		item->previous = last;
 	}
 
-	if (c->session->last_monitor_message) {
-		ws_send(c->ws_client, c->session->last_monitor_message, c->session->last_monitor_message_len);
-	}
 	fprintf(stderr, "client %p added to monitor list\n", c);
 }
 
@@ -312,12 +309,8 @@ void sxxxxxxx_monitor_end(client *c) {
 void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t len) {
 	monitor_list_item *monitor = s->monitors;
 
-	s->last_monitor_message = realloc(s->last_monitor_message, strlen(message) + 1);
-	memcpy(s->last_monitor_message, message, strlen(message) + 1);
-
 	while (monitor) {
 		ws_send(monitor->c->ws_client, message, len);
-		fprintf(stderr, "notified %p \"%s\"\n", monitor->c, message);
 		monitor = monitor->next;
 	}
 }

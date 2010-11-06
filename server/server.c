@@ -111,7 +111,6 @@ void* run_client(void *x) {
 		
 		if (c->headers_complete) {
 			handle_client_request(c, buf + nparsed, recved - nparsed);
-			fprintf(stderr, "handled!\n");
 			break;
 		}
 		else if (nparsed != recved) {
@@ -204,7 +203,6 @@ static void handle_client_request(client *c, char *body, size_t body_len) {
 	size_t len = strlen(c->path);
 
 	if ((len == 27 || len == 41 || len == 57) && strstr(c->path, "play/") == c->path) {
-		fprintf(stderr, "sxxxxxxx_play\n");
 		sxxxxxxx_play(c->session, c->path + len - 22);
 		ok = true;
 	}

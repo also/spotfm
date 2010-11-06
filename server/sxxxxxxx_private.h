@@ -41,8 +41,6 @@ typedef struct sxxxxxxx_session {
 	/// Synchronization variable telling the main thread to process events
 	int notify_do;
 	monitor_list_item *monitors;
-	char *last_monitor_message;
-	size_t last_monitor_message_len;
 } _sxxxxxxx_session;
 
 void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t len);
