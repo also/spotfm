@@ -11,3 +11,12 @@ tbody tr:not([data-spotify-unresolvable]) td.playbuttonCell {
 tbody tr td.playbuttonCell {
     min-width: 17px !important;
 }
+
+.spotfmPlaying, table.chart tr.odd.spotfmPlaying td {
+    background-color: green !important;
+    color: #fff;
+}
+
+table.chart .spotfmPlaying td.subjectCell a {
+    color: #fff !important;
+}

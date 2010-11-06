@@ -104,17 +104,15 @@
 	}
 	switch (key) {
 		case NX_KEYTYPE_PLAY:
-			NSLog(@"keyboard play");
 			sxxxxxxx_toggle_play(session);
 			break;
 			
 		case NX_KEYTYPE_FAST:
-			NSLog(@"keyboard advance");
+			sxxxxxxx_next(session);
 			break;
 			
 		case NX_KEYTYPE_REWIND:
 			sxxxxxxx_previous(session);
-			NSLog(@"keyboard rewind");
 			break;
 	}
 }
