@@ -126,10 +126,11 @@ void* run_client(void *x) {
 	if (c->path) {
 		free(c->path);
 	}
-	for (int i; i < c->header_count; i++) {
+	for (int i = 0; i < c->header_count; i++) {
 		if (c->headers[i].name) {
 			free(c->headers[i].name);
 		}
+
 		if (c->headers[i].value) {
 			free(c->headers[i].value);
 		}
