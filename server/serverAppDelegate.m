@@ -54,6 +54,8 @@
 	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:controlsFile]]];
 
 	sxxxxxxx_init(&session, username, password);
+	free(username);
+	free(password);
 	[self showStatusItem];
 	sxxxxxxx_run(session, TRUE);
 }
