@@ -1,29 +1,35 @@
 var currentTrElt;
 
-var ws = new WebSocket('ws://localhost:9999/monitor');
-console.log(ws);
-ws.onmessage = function (a) {
-    var j = JSON.parse(a.data);
-    if (j.event == 'advance' || j.event == 'end_of_track' || j.event == 'playback_failed') {
-        console.log(j.event);
-        if (spotfm.advance) {
-            spotfm.advance();
+function connect() {
+    console.log('trying to connect');
+    ws = new WebSocket('ws://localhost:9999/monitor');
+
+    ws.onmessage = function (a) {
+        var j = JSON.parse(a.data);
+        if (j.event == 'advance' || j.event == 'end_of_track' || j.event == 'playback_failed') {
+            console.log(j.event);
+            if (spotfm.advance) {
+                spotfm.advance();
+            }
         }
-    }
-};
+    };
 
-ws.onopen = function () {
-  console.log('open');
-};
+    ws.onopen = function () {
+      console.log('connected');
+    };
 
-ws.onerror = function () {
-  console.log('spotfm error');
-};
+    ws.onerror = function () {
+      console.log('spotfm error');
+      window.setTimeout(connect, 1000);
+    };
 
-ws.onclose = function () {
-   console.log('spotfm error');
-};
+    ws.onclose = function () {
+       console.log('spotfm closed');
+       window.setTimeout(connect, 1000);
+    };
+}
 
+connect();
 
 spotfm.advance = function() {
     if (currentTrElt) {
