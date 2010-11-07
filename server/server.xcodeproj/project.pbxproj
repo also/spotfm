@@ -27,6 +27,7 @@
 		9499E98F128389FE0002B79F /* core.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98B128389F00002B79F /* core.js */; };
 		9499E990128389FE0002B79F /* mootools-core-1.3-full-nocompat-yc.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */; };
 		9499E99A12838CD60002B79F /* controls.html in Resources */ = {isa = PBXBuildFile; fileRef = 9499E99612838CBB0002B79F /* controls.html */; };
+		9499EC42128619020002B79F /* keychain.c in Sources */ = {isa = PBXBuildFile; fileRef = 9499EC41128619020002B79F /* keychain.c */; };
 		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
@@ -81,6 +82,8 @@
 		9499E98B128389F00002B79F /* core.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = core.js; sourceTree = "<group>"; };
 		9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mootools-core-1.3-full-nocompat-yc.js"; sourceTree = "<group>"; };
 		9499E99612838CBB0002B79F /* controls.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = controls.html; sourceTree = "<group>"; };
+		9499EC40128619020002B79F /* keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keychain.h; sourceTree = "<group>"; };
+		9499EC41128619020002B79F /* keychain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = keychain.c; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
 		94E03232126A29B100A59FA5 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
@@ -175,6 +178,8 @@
 				948D1505127FA4810082650E /* web_socket.c */,
 				9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */,
 				9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */,
+				9499EC40128619020002B79F /* keychain.h */,
+				9499EC41128619020002B79F /* keychain.c */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -298,6 +303,7 @@
 				948D122C127E55180082650E /* md5.c in Sources */,
 				948D1506127FA4810082650E /* web_socket.c in Sources */,
 				9458ECE21284D3D700E3B662 /* SXXXXXXXApplication.m in Sources */,
+				9499EC42128619020002B79F /* keychain.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -39,7 +39,7 @@ static sp_session_config spconfig = {
 	.settings_location = "tmp",
 	.application_key = g_appkey,
 	.application_key_size = 0, // Set in main()
-	.user_agent = "test",
+	.user_agent = "spotfm",
 	.callbacks = &session_callbacks,
 	NULL,
 };
@@ -51,9 +51,9 @@ static void* main_loop(void *sess);
 static void try_to_play(sxxxxxxx_session *session);
 
 
-yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event);
+static yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event);
 
-void finish_send_event(sxxxxxxx_session *s, yajl_gen g);
+static void finish_send_event(sxxxxxxx_session *s, yajl_gen g);
 
 # pragma mark Spotify Callbacks
 
@@ -233,7 +233,7 @@ void sxxxxxxx_run(sxxxxxxx_session *session, bool thread) {
 	}
 }
 
-void* main_loop(void *s) {
+static void* main_loop(void *s) {
 	sxxxxxxx_session *session = (sxxxxxxx_session *) s;
 	int next_timeout = 0;
 	pthread_mutex_lock(&session->notify_mutex);
@@ -325,7 +325,7 @@ yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event) {
 	return g;
 }
 
-void finish_send_event(sxxxxxxx_session *s, yajl_gen g) {
+static void finish_send_event(sxxxxxxx_session *s, yajl_gen g) {
 	yajl_gen_map_close(g);
 	const unsigned char *buf;
 	unsigned int len;
@@ -334,7 +334,7 @@ void finish_send_event(sxxxxxxx_session *s, yajl_gen g) {
 	yajl_gen_free(g);
 }
 
-void send_event(sxxxxxxx_session *s, char *event) {
+static void send_event(sxxxxxxx_session *s, char *event) {
 	yajl_gen g = begin_event_json(s, event);
 	finish_send_event(s, g);
 }
@@ -413,4 +413,3 @@ void sxxxxxxx_next(sxxxxxxx_session *session) {
 	yajl_gen g = begin_event_json(session, "advance");
 	finish_send_event(session, g);
 }
-
