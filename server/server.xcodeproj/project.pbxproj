@@ -82,6 +82,7 @@
 		9499E98B128389F00002B79F /* core.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = core.js; sourceTree = "<group>"; };
 		9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mootools-core-1.3-full-nocompat-yc.js"; sourceTree = "<group>"; };
 		9499E99612838CBB0002B79F /* controls.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = controls.html; sourceTree = "<group>"; };
+		9499EC101286157A0002B79F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		9499EC40128619020002B79F /* keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keychain.h; sourceTree = "<group>"; };
 		9499EC41128619020002B79F /* keychain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = keychain.c; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
@@ -178,6 +179,7 @@
 				948D1505127FA4810082650E /* web_socket.c */,
 				9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */,
 				9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */,
+				9499EC101286157A0002B79F /* main.c */,
 				9499EC40128619020002B79F /* keychain.h */,
 				9499EC41128619020002B79F /* keychain.c */,
 			);
@@ -257,6 +259,7 @@
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "server" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
