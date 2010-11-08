@@ -1,3 +1,5 @@
+var TERRITORY = 'SE';
+
 var spotfm = {
     play: function (trackId) {
         var audioRequest = new Request({url: "http://localhost:9999/play/" + trackId, method:'get'});
@@ -18,7 +20,9 @@ var spotfm = {
             var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
             console.log(requestURL);
             var jsonRequest = new Request.JSON({url: requestURL, method:'get', headers: {}, onSuccess: function(json_object, json_string){
-                var tracks = json_object.tracks;
+                var tracks = json_object.tracks.filter(function (track) {
+                    return track.album.availability.territories.indexOf(TERRITORY) >= 0;
+                });
                 if (tracks.length !== 0) {
                     var track = tracks[0];
                     var id = track.href;
