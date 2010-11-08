@@ -1,45 +1,5 @@
 var currentTrElt;
 
-function connect() {
-    console.log('trying to connect');
-    var ws = new WebSocket('ws://localhost:9999/monitor');
-
-    ws.onmessage = function (a) {
-        var j = JSON.parse(a.data);
-        if (j.event == 'next' || j.event == 'end_of_track' || j.event == 'playback_failed') {
-            if (spotfm.next) {
-                spotfm.next();
-            }
-        }
-        else if (j.event == 'previous') {
-            if (spotfm.previous()) {
-                spotfm.previous();
-            }
-        }
-        else if (j.event == 'play') {
-            if (currentTrElt) {
-                playTrElt(currentTrElt);
-            }
-        }
-    };
-
-    ws.onopen = function () {
-      console.log('connected');
-    };
-
-    ws.onerror = function () {
-      console.log('spotfm error');
-      window.setTimeout(connect, 1000);
-    };
-
-    ws.onclose = function () {
-       console.log('spotfm closed');
-       window.setTimeout(connect, 1000);
-    };
-}
-
-connect();
-
 spotfm.next = function() {
     if (currentTrElt) {
         var nextTrElt = currentTrElt.getNext('tr');
@@ -57,6 +17,14 @@ spotfm.previous = function() {
         }
     }
 };
+
+spotfm.tryToPlay = function () {
+    if (currentTrElt) {
+        playTrElt(currentTrElt);
+    }
+};
+
+spotfm.connect();
 
 document.window.addEvent('click', function(theEvent) {
     var target = theEvent.target;
