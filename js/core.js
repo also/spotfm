@@ -26,6 +26,9 @@ var spotfm = {
                 if (tracks.length !== 0) {
                     var track = tracks[0];
                     var id = track.href;
+                    if (options.onResolution) {
+                        options.onResolution(id);
+                    }
                     console.log([track.artists[0].name, track.album.name, track.name].join(' '));
                     spotfm.play(id);
                 }
