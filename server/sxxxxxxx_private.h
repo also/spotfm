@@ -13,6 +13,7 @@
 
 typedef enum {
 	STOPPED,
+	PAUSED,
 	LOADING,
 	BUFFERING,
 	PLAYING,
@@ -28,10 +29,13 @@ struct monitor_list_item {
 
 typedef struct sxxxxxxx_session {
 	sxxxxxxx_state state;
+	bool track_ending;
 	sp_session *spotify_session;
 	sp_track *track;
 	sp_track *next_track;
-	audio_fifo_t audiofifo;
+	int seek_position;
+	int frames_since_seek;
+	audio_player_t player;
 	// synchronize on libspotify method calls
 	pthread_mutex_t spotify_mutex;
 	/// Synchronization mutex for the main thread

@@ -6,16 +6,23 @@ function connect() {
 
     ws.onmessage = function (a) {
         var j = JSON.parse(a.data);
-        if (j.event == 'advance' || j.event == 'end_of_track' || j.event == 'playback_failed') {
-            console.log(j.event);
-            if (spotfm.advance) {
-                spotfm.advance();
+        if (j.event == 'next' || j.event == 'end_of_track' || j.event == 'playback_failed') {
+            if (spotfm.next) {
+                spotfm.next();
+            }
+        }
+        else if (j.event == 'previous') {
+            if (spotfm.previous()) {
+                spotfm.previous();
             }
         }
         else if (j.event == 'play') {
             if (currentTrElt) {
                 playTrElt(currentTrElt);
             }
+        }
+        else {
+            console.log(j.event);
         }
     };
 
@@ -36,11 +43,20 @@ function connect() {
 
 connect();
 
-spotfm.advance = function() {
+spotfm.next = function() {
     if (currentTrElt) {
         var nextTrElt = currentTrElt.getNext('tr');
         if (nextTrElt) {
             playTrElt(nextTrElt);
+        }
+    }
+};
+
+spotfm.previous = function() {
+    if (currentTrElt) {
+        var previousTrElt = currentTrElt.getPrevious('tr');
+        if (previousTrElt) {
+            playTrElt(previousTrElt);
         }
     }
 };
@@ -82,7 +98,7 @@ function playTrElt(trElt) {
             // to be noticed until the mouse moves out of the row
             trElt.addClass('thunk');
             trElt.setProperty('data-spotify-unresolvable', 'true');
-            spotfm.advance();
+            spotfm.next();
         }
     });
 }

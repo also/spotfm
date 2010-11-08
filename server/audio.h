@@ -48,12 +48,27 @@ typedef struct audio_fifo {
 	pthread_cond_t cond;
 } audio_fifo_t;
 
+typedef struct auido_player audio_player_t;
+
+struct auido_player {
+	void *data;
+	audio_fifo_t af;
+	void *internal_state;
+	void (*on_start) (audio_player_t *player);
+	void (*on_stop) (audio_player_t *player);
+};
+
 
 /* --- Functions --- */
-extern void audio_init(audio_fifo_t *af);
-extern void audio_enqueue(audio_fifo_t *af, audio_fifo_data_t *afd);
-extern void audio_fifo_flush(audio_fifo_t *af);
-extern void audio_reset(audio_fifo_t *af);
+extern void audio_init(audio_player_t *player);
+extern void audio_enqueue(audio_player_t *player, audio_fifo_data_t *afd);
+extern void audio_reset(audio_player_t *player);
+extern void audio_finish(audio_player_t *player);
+extern void audio_start(audio_player_t *player);
+extern void audio_pause(audio_player_t *player);
+extern void audio_get_position(audio_player_t *player, int *position);
+
+void audio_fifo_flush(audio_fifo_t *af);
 audio_fifo_data_t* audio_get(audio_fifo_t *af);
 audio_fifo_data_t* audio_get_nowait(audio_fifo_t *af);
 

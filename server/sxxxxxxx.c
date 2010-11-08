@@ -48,12 +48,29 @@ static sp_session_config spconfig = {
 static sxxxxxxx_session *g_session;
 
 static void* main_loop(void *sess);
+static void* watchdog_loop(void *sess);
 static void try_to_play(sxxxxxxx_session *session);
 
+static yajl_gen begin_event(sxxxxxxx_session *s, const char *event);
 
-static yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event);
+static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g);
+static void finish_event_send(client *c, yajl_gen g);
 
-static void finish_send_event(sxxxxxxx_session *s, yajl_gen g);
+static yajl_gen begin_track_info_event(sxxxxxxx_session *session);
+
+static double get_position(sxxxxxxx_session *session);
+
+
+static void handle_player_stop(audio_player_t *player) {
+	sxxxxxxx_session *session = (sxxxxxxx_session *) player->data;
+	session->state = STOPPED;
+	if (session->track_ending) {
+		session->track_ending = false;
+		send_event(g_session, "end_of_track");
+	}
+	send_event(session, "stopped");
+	printf("handle_player_stop\n");
+}
 
 # pragma mark Spotify Callbacks
 
@@ -72,9 +89,10 @@ static void notify_main_thread(sp_session *sess) {
 }
 
 static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames) {
-	audio_fifo_t *af = &g_session->audiofifo;
+	audio_fifo_t *af = &g_session->player.af;
 	if (g_session->state != PLAYING) {
 		g_session->state = PLAYING;
+		audio_start(&g_session->player);
 		send_event(g_session, "playing");
 	}
 
@@ -103,10 +121,12 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	afd->rate = format->sample_rate;
 	afd->channels = format->channels;
 	
-	audio_enqueue(af, afd);
+	audio_enqueue(&g_session->player, afd);
 	
 	pthread_cond_signal(&af->cond);
 	pthread_mutex_unlock(&af->mutex);
+
+	g_session->frames_since_seek += num_frames;
 	
 	return num_frames;
 }
@@ -117,8 +137,7 @@ static void metadata_updated(sp_session *sess) {
 
 static void play_token_lost(sp_session *sess) {
 	// we can lose the play token even if there is no track
-	g_session->state = STOPPED;
-	send_event(g_session, "stopped");
+	audio_finish(&g_session->player);
 }
 
 static void log_message(sp_session *session, const char *data) {
@@ -130,9 +149,8 @@ static void message_to_user(sp_session *session, const char *data) {
 }
 
 static void end_of_track(sp_session *sess) {
-	g_session->state = STOPPED;
-	send_event(g_session, "end_of_track");
-	send_event(g_session, "stopped");
+	g_session->track_ending = true;
+	audio_finish(&g_session->player);
 	g_session->track = NULL;
 	// TODO better to leak than to crash...
 	//sp_session_player_unload(sess);
@@ -159,35 +177,19 @@ static void try_to_play(sxxxxxxx_session *session) {
 		return;
 	}
 	else {
-		audio_fifo_flush(&g_session->audiofifo);
-		audio_reset(&g_session->audiofifo);
+		audio_fifo_flush(&session->player.af);
+		audio_reset(&session->player);
+		session->seek_position = 0;
+		session->frames_since_seek = 0;
 		sp_session_player_play(session->spotify_session, true);
 
-		yajl_gen g = begin_event_json(session, "track_info");
+		yajl_gen g = begin_track_info_event(session);
+		finish_event_notify_monitors(session, g);
 
-		yajl_gen_string(g, (unsigned char *) "track_name", 10);
-		const char *track_name = sp_track_name(session->track);
-		yajl_gen_string(g, track_name, strlen(track_name));
-
-		sp_album* album = sp_track_album(session->track);
-		yajl_gen_string(g, (unsigned char *) "album_name", 10);
-		const char *album_name = sp_album_name(album);
-		yajl_gen_string(g, album_name, strlen(album_name));
-
-		sp_artist *artist = sp_track_artist(session->track, 0);
-		yajl_gen_string(g, (unsigned char *) "artist_name", 11);
-		const char *artist_name = sp_artist_name(artist);
-		yajl_gen_string(g, artist_name, strlen(artist_name));
-		
-		int duration = sp_track_duration(session->track);
-		yajl_gen_string(g, (unsigned char *) "track_duration", 14);
-		yajl_gen_integer(g, duration);
-		finish_send_event(session, g);
-
-		g = begin_event_json(session, "seek");
+		g = begin_event(session, "seek");
 		yajl_gen_string(g, "offset", 6);
 		yajl_gen_integer(g, 0);
-		finish_send_event(session, g);
+		finish_event_notify_monitors(session, g);
 	}
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
@@ -219,18 +221,38 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	
 	sp_session_login(s->spotify_session, username, password);
 	
-	audio_init(&s->audiofifo);
+	s->player.data = s;
+	s->player.on_stop = handle_player_stop;
+
+	audio_init(&s->player);
 }
 
 void sxxxxxxx_run(sxxxxxxx_session *session, bool thread) {
-	pthread_t server_thread, main_thread;
+	pthread_t server_thread, main_thread, watchdog_thread;
 	pthread_create(&server_thread, NULL, server_loop, session);
+	pthread_create(&watchdog_thread, NULL, watchdog_loop, session);
 	if (thread) {
 		pthread_create(&main_thread, NULL, main_loop, session);
 	}
 	else {
 		main_loop(session);
 	}
+}
+
+static int waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, int ms_to_wait) {
+	struct timespec ts;
+
+#if _POSIX_TIMERS > 0
+	clock_gettime(CLOCK_REALTIME, &ts);
+#else
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	TIMEVAL_TO_TIMESPEC(&tv, &ts);
+#endif
+	ts.tv_sec += ms_to_wait / 1000;
+	ts.tv_nsec += (ms_to_wait % 1000) * 1000000;
+	pthread_cond_timedwait(cond, mutex, &ts);
+	return 0;
 }
 
 static void* main_loop(void *s) {
@@ -244,18 +266,7 @@ static void* main_loop(void *s) {
 				pthread_cond_wait(&session->notify_cond, &session->notify_mutex);
 			}
 		} else {
-			struct timespec ts;
-			
-#if _POSIX_TIMERS > 0
-			clock_gettime(CLOCK_REALTIME, &ts);
-#else
-			struct timeval tv;
-			gettimeofday(&tv, NULL);
-			TIMEVAL_TO_TIMESPEC(&tv, &ts);
-#endif
-			ts.tv_sec += next_timeout / 1000;
-			ts.tv_nsec += (next_timeout % 1000) * 1000000;
-			pthread_cond_timedwait(&session->notify_cond, &session->notify_mutex, &ts);
+			waitfor(&session->notify_cond, &session->notify_mutex, next_timeout);
 		}
 		
 		session->notify_do = 0;
@@ -267,6 +278,65 @@ static void* main_loop(void *s) {
 		
 		pthread_mutex_lock(&session->notify_mutex);
 	}
+}
+
+static void* watchdog_loop(void *sess) {
+	sxxxxxxx_session *session = (sxxxxxxx_session *) sess;
+
+	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+	pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
+	int previous_frames_since_seek = 0;
+	int previous_seek_position = 0;
+
+	// TODO seems like a dumb way to sleep
+	pthread_mutex_lock(&lock);
+	for(;;) {
+		waitfor(&cond, &lock, 1000);
+		int position;
+		audio_get_position(&g_session->player, &position);
+		pthread_mutex_unlock(&lock);
+		if (previous_frames_since_seek != session->frames_since_seek || previous_seek_position != session->seek_position) {
+			double position = get_position(session);
+			yajl_gen g = begin_event(session, "position");
+			yajl_gen_string(g, "position", 8);
+			yajl_gen_double(g, position);
+			finish_event_notify_monitors(session, g);
+			previous_frames_since_seek = session->frames_since_seek;
+			previous_seek_position = session->seek_position;
+		}
+	}
+	pthread_mutex_unlock(&lock);
+
+	return NULL;
+}
+
+static double get_position(sxxxxxxx_session *session) {
+	return (double) session->frames_since_seek / 44.100 + session->seek_position;
+}
+
+static yajl_gen begin_track_info_event(sxxxxxxx_session *session) {
+	yajl_gen g = begin_event(session, "track_info");
+
+	yajl_gen_string(g, (unsigned char *) "track_name", 10);
+	const char *track_name = sp_track_name(session->track);
+	yajl_gen_string(g, track_name, strlen(track_name));
+
+	sp_album* album = sp_track_album(session->track);
+	yajl_gen_string(g, (unsigned char *) "album_name", 10);
+	const char *album_name = sp_album_name(album);
+	yajl_gen_string(g, album_name, strlen(album_name));
+
+	sp_artist *artist = sp_track_artist(session->track, 0);
+	yajl_gen_string(g, (unsigned char *) "artist_name", 11);
+	const char *artist_name = sp_artist_name(artist);
+	yajl_gen_string(g, artist_name, strlen(artist_name));
+
+	int duration = sp_track_duration(session->track);
+	yajl_gen_string(g, (unsigned char *) "track_duration", 14);
+	yajl_gen_integer(g, duration);
+
+	return g;
 }
 
 void sxxxxxxx_monitor(client *c) {
@@ -285,6 +355,25 @@ void sxxxxxxx_monitor(client *c) {
 		}
 		last->next = item;
 		item->previous = last;
+	}
+
+	double position = 0.0;
+	yajl_gen g;
+
+	if (c->session->track) {
+		g = begin_track_info_event(c->session);
+		finish_event_send(c, g);
+		position = get_position(c->session);
+	}
+	g = begin_event(c->session, "position");
+	yajl_gen_string(g, "position", 8);
+	yajl_gen_double(g, position);
+	finish_event_send(c, g);
+	if (c->session->state == PLAYING) {
+		send_event(c->session, "playing");
+	}
+	else {
+		send_event(c->session, "stopped");
 	}
 
 	fprintf(stderr, "client %p added to monitor list\n", c);
@@ -315,7 +404,7 @@ void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t l
 	}
 }
 
-yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event) {
+static yajl_gen begin_event(sxxxxxxx_session *s, const char *event) {
 	yajl_gen_config conf = { false };
 	yajl_gen g;
 	g = yajl_gen_alloc(&conf, NULL);
@@ -325,7 +414,7 @@ yajl_gen begin_event_json(sxxxxxxx_session *s, const char *event) {
 	return g;
 }
 
-static void finish_send_event(sxxxxxxx_session *s, yajl_gen g) {
+static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g) {
 	yajl_gen_map_close(g);
 	const unsigned char *buf;
 	unsigned int len;
@@ -334,13 +423,25 @@ static void finish_send_event(sxxxxxxx_session *s, yajl_gen g) {
 	yajl_gen_free(g);
 }
 
+static void finish_event_send(client *c, yajl_gen g) {
+	yajl_gen_map_close(g);
+	const unsigned char *buf;
+	unsigned int len;
+	yajl_gen_get_buf(g, &buf, &len);
+	ws_send(c->ws_client, buf, len);
+	yajl_gen_free(g);
+}
+
 static void send_event(sxxxxxxx_session *s, char *event) {
-	yajl_gen g = begin_event_json(s, event);
-	finish_send_event(s, g);
+	yajl_gen g = begin_event(s, event);
+	finish_event_notify_monitors(s, g);
 }
 
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
-	sxxxxxxx_stop(session);
+	sp_session_player_play(session->spotify_session, false);
+	// TODO what is necessary?
+	audio_fifo_flush(&session->player.af);
+	audio_reset(&session->player);
 
 	char url[] = "spotify:track:XXXXXXXXXXXXXXXXXXXXXX";
 	memcpy(url + 14, id, 22);
@@ -354,7 +455,6 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 		session->next_track = track;
 		session->state = BUFFERING;
 		send_event(session, "buffering");
-		fprintf(stderr, "loading\n");
 		try_to_play(session);
 	}
 	
@@ -362,9 +462,7 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 }
 
 void sxxxxxxx_resume(sxxxxxxx_session *session) {
-	// TODO what is necessary?
-	audio_fifo_flush(&g_session->audiofifo);
-	audio_reset(&g_session->audiofifo);
+
 	if (session->track) {
 		sp_session_player_play(session->spotify_session, true);
 	}
@@ -376,16 +474,13 @@ void sxxxxxxx_resume(sxxxxxxx_session *session) {
 
 void sxxxxxxx_stop(sxxxxxxx_session *session) {
 	// TODO what is necessary?
-	// TODO drops a buffer full of audio
-	audio_fifo_flush(&g_session->audiofifo);
-	audio_reset(&g_session->audiofifo);
+	audio_pause(&session->player);
 	sp_session_player_play(session->spotify_session, false);
-	session->state = STOPPED;
-	send_event(session, "stopped");
+	session->state = PAUSED;
 }
 
 void sxxxxxxx_toggle_play(sxxxxxxx_session *session) {
-	if (session->state == STOPPED) {
+	if (session->state == STOPPED || session->state == PAUSED) {
 		sxxxxxxx_resume(session);
 	}
 	else {
@@ -395,21 +490,26 @@ void sxxxxxxx_toggle_play(sxxxxxxx_session *session) {
 
 void sxxxxxxx_seek(sxxxxxxx_session *session, int offset) {
 	// TODO what is necessary?
-	audio_fifo_flush(&g_session->audiofifo);
-	audio_reset(&g_session->audiofifo);
+	audio_fifo_flush(&session->player.af);
+	audio_reset(&session->player);
 	sp_session_player_seek(session->spotify_session, offset);
-	yajl_gen g = begin_event_json(session, "seek");
-	yajl_gen_string(g, "offset", 6);
+	session->frames_since_seek = 0;
+	session->seek_position = offset;
+	yajl_gen g = begin_event(session, "position");
+	yajl_gen_string(g, "position", 8);
 	yajl_gen_integer(g, offset);
-	finish_send_event(session, g);
+	finish_event_notify_monitors(session, g);
 }
 
 void sxxxxxxx_previous(sxxxxxxx_session *session) {
-	sxxxxxxx_seek(session, 0);
-	// TODO if at beginning of song, send "previous track" event
+	if (get_position(session) < 3000) {
+		send_event(session, "previous");
+	}
+	else {
+		sxxxxxxx_seek(session, 0);
+	}
 }
 
 void sxxxxxxx_next(sxxxxxxx_session *session) {
-	yajl_gen g = begin_event_json(session, "advance");
-	finish_send_event(session, g);
+	send_event(session, "next");
 }

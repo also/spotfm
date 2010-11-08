@@ -83,10 +83,8 @@ ws.onmessage = function (a) {
             $('artist').set('html', j.artist_name);
             duration = j.track_duration;
         }
-        else if (j.event == 'seek') {
-            setPosition(j.offset);
-        }
         else if (j.event == 'playing') {
+            setPosition(lastPosition);
             positionUpdateInterval = window.setInterval(updatePosition, 500);
             $(document.body).addClass('playing');
             $(document.body).removeClass('stopped');
@@ -96,22 +94,31 @@ ws.onmessage = function (a) {
             $(document.body).addClass('stopped');
             $(document.body).removeClass('playing');
         }
-        console.log(j);
+        else if (j.event == 'position') {
+            setPosition(j.position);
+        }
     }
 };
 
 function setPosition(position) {
+    lastPosition = position;
     timeOffset = new Date().getTime() - position;
     drawPosition(position);
 }
 
 function drawPosition(position) {
-    var percent = (position / duration * 100).toFixed(2);
+    var percent = 0;
+
+    if (duration > 0) {
+        percent = (position / duration * 100).toFixed(2);
+    }
+
     $('position').setStyle('width', percent + '%');
 }
 
 var timeOffset;
 var duration;
+var lastPosition = 0;
 var positionUpdateInterval;
 
 function resume() {
@@ -125,6 +132,11 @@ function stop() {
 function updatePosition() {
     var now = new Date().getTime();
     var played = now - timeOffset;
+    if (played >= duration) {
+        window.clearInterval(positionUpdateInterval);
+        drawPosition(duration);
+        return;
+    }
     drawPosition(played);
 }
 </script>
