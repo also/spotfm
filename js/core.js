@@ -125,7 +125,7 @@ var spotfm = {
         var played = now - spotfm.timeOffset;
         if (played >= spotfm.player.duration) {
             window.clearInterval(spotfm.positionUpdateInterval);
-            played = duration;
+            played = spotfm.player.duration;
         }
         if (spotfm.onPositionChange) {
             spotfm.onPositionChange(spotfm.player.position);
