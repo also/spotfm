@@ -30,7 +30,6 @@ document.window.addEvent('click', function(theEvent) {
     var target = theEvent.target;
     var parents = target.getParents('.candyStriped, .tracklist');
     if (parents.length !== 0) {
-        // get the name of the track
         var trElt = target.getParent('tr');
         playTrElt(trElt);
     }
@@ -82,5 +81,26 @@ function playTrElt(trElt) {
                 spotfm.next();
             }
         });
+    }
+}
+
+var checkForSessionStarted;
+var lastfmSession;
+window.addEvent('domready', function() {
+    var scriptElt = new Element('script', {src: safari.extension.baseURI + 'lastfm-internal.js'});
+    document.body.appendChild(scriptElt);
+    checkForSessionStarted = new Date().getTime();
+    window.setTimeout(checkForSession, 100);
+});
+
+function checkForSession () {
+    var sessionJSON = document.body.getProperty('data-session');
+    if (!sessionJSON) {
+        if (new Date().getTime() - checkForSessionStarted < 1000) {
+            window.setTimeout(checkForSession, 100);
+        }
+    }
+    else {
+        lastfmSession = JSON.parse(sessionJSON);
     }
 }
