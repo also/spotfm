@@ -93,6 +93,7 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	if (g_session->state != PLAYING) {
 		g_session->state = PLAYING;
 		audio_start(&g_session->player);
+		send_event(g_session, "start_of_track");
 		send_event(g_session, "playing");
 	}
 
@@ -190,8 +191,8 @@ static void try_to_play(sxxxxxxx_session *session) {
 		yajl_gen g = begin_track_info_event(session);
 		finish_event_notify_monitors(session, g);
 
-		g = begin_event(session, "seek");
-		yajl_gen_string(g, "offset", 6);
+		g = begin_event(session, "position");
+		yajl_gen_string(g, "position", 8);
 		yajl_gen_integer(g, 0);
 		finish_event_notify_monitors(session, g);
 	}
