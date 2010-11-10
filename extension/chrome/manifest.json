@@ -7,6 +7,8 @@
     {
       "matches": ["http://www.last.fm/*"],
       "js": [
+        "extension-core.js",
+        "extension-chrome.js",
         "mootools-core-1.3-full-nocompat-yc.js",
         "core.js",
         "lastfm.js"],

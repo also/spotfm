@@ -20,6 +20,8 @@
 		<dict>
 			<key>Start</key>
 			<array>
+				<string>extension-core.js</string>
+				<string>extension-safari.js</string>
 				<string>mootools-core-1.3-full-nocompat-yc.js</string>
 				<string>core.js</string>
 				<string>lastfm.js</string>

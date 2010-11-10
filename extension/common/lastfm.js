@@ -24,6 +24,25 @@ spotfm.tryToPlay = function () {
     }
 };
 
+var scrobbled = false;
+
+spotfm.onPositionChange = function (position) {
+    if (scrobbled || !currentTrElt || !spotfm.player.duration || spotfm.player.duration < 30000) {
+        return;
+    }
+    if (position >= Math.min(4 * 60 * 1000, spotfm.player.duration / 2)) {
+        scrobbled = true;
+        scrobble(currentTrElt.getProperty('data-track-id'));
+    }
+};
+
+spotfm.onTrackStart = function () {
+    scrobbled = false;
+    if (currentTrElt) {
+        nowplaying(currentTrElt.getProperty('data-track-id'));
+    }
+};
+
 spotfm.connect();
 
 document.window.addEvent('click', function(theEvent) {
@@ -84,10 +103,20 @@ function playTrElt(trElt) {
     }
 }
 
+function scrobble(lastfmTrackId) {
+    var audioRequest = new Request({url: 'http://www.last.fm/ajax/scrobble', method:'post'});
+    audioRequest.send('track=' + lastfmTrackId + '&formtoken=' + lastfmSession.formtoken);
+}
+
+function nowplaying(lastfmTrackId) {
+    var audioRequest = new Request({url: 'http://www.last.fm/ajax/nowplaying', method:'post'});
+    audioRequest.send('track=' + lastfmTrackId + '&formtoken=' + lastfmSession.formtoken);
+}
+
 var checkForSessionStarted;
 var lastfmSession;
 window.addEvent('domready', function() {
-    var scriptElt = new Element('script', {src: safari.extension.baseURI + 'lastfm-internal.js'});
+    var scriptElt = new Element('script', {src: extension.getURL('lastfm-internal.js')});
     document.body.appendChild(scriptElt);
     checkForSessionStarted = new Date().getTime();
     window.setTimeout(checkForSession, 100);

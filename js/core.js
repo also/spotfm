@@ -79,6 +79,11 @@ var spotfm = {
                         spotfm.onTrackInfo(j);
                     }
                 }
+                else if (j.event == 'start_of_track') {
+                    if (spotfm.onTrackStart) {
+                        spotfm.onTrackStart();
+                    }
+                }
                 else if (j.event == 'playing') {
                     spotfm.setPosition(spotfm.player.position);
                     spotfm.positionUpdateInterval = window.setInterval(spotfm.updatePosition, 500);
