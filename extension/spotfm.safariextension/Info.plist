@@ -13,7 +13,10 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>Chrome</key>
-	<dict/>
+	<dict>
+		<key>Global Page</key>
+		<string>background.html</string>
+	</dict>
 	<key>Content</key>
 	<dict>
 		<key>Scripts</key>
@@ -22,6 +25,7 @@
 			<array>
 				<string>extension-core.js</string>
 				<string>extension-safari.js</string>
+				<string>extension-tab-safari.js</string>
 				<string>mootools-core-1.3-full-nocompat-yc.js</string>
 				<string>core.js</string>
 				<string>lastfm.js</string>

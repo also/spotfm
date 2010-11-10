@@ -20,7 +20,7 @@ var spotfm = {
         options = options || {};
         var query = [escape(trackInfo.artist), escape(trackInfo.track)].join('+');
         var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
-        var jsonRequest = new Request.JSON({url: requestURL, method:'get', headers: {}, onSuccess: function(json_object, json_string) {
+        var jsonRequest = new Request.JSON({url: requestURL, method:'get', headers: {}, onSuccess: function (json_object, json_string) {
             var tracks = json_object.tracks.filter(function (track) {
                 return track.album.availability.territories.indexOf(TERRITORY) >= 0;
             });
