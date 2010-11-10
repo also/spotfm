@@ -167,6 +167,10 @@ static void try_to_play(sxxxxxxx_session *session) {
 	
 	pthread_mutex_lock(&session->spotify_mutex);
 
+	if (session->track && session->track != session->next_track) {
+		sp_track_release(session->track);
+	}
+
 	session->track = session->next_track;
 	session->next_track = NULL;
 	error = sp_session_player_load(session->spotify_session, session->track);
