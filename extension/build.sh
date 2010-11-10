@@ -1,5 +1,7 @@
 #!/bin/sh
 
+rm -rf build
+
 mkdir -p build build/chrome build/spotfm.safariextension
 
 cp chrome/* build/chrome
