@@ -232,8 +232,6 @@ static void handle_client_request(client *c, char *body, size_t body_len) {
 		key3[8] = '\0';
 
 		if (key1 && key2) {
-			ok = true;
-
 			ws_client ws_client;
 			ws_client.data = c;
 			ws_client.fd = c->fd;

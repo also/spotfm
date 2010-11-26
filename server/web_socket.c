@@ -59,8 +59,8 @@ void ws_generate_signature(const char *key1, const char *key2, const char *key3,
 }
 
 static int ws_parse_input(ws_client *c, const char *input, size_t input_len) {
-	const char *current, *start, *end;
-	current = start = input;
+	const char *current, *end;
+	current = input;
 	end = current + input_len;
 	int current_len = 0;
 

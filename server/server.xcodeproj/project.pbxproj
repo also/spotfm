@@ -359,7 +359,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/yajl/yajl-1.0.11/lib\"",
 					"\"$(SRCROOT)/yajl/build/yajl-1.0.11/lib\"",
 				);
 				PRODUCT_NAME = SXXXXXXX;
@@ -382,7 +381,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/yajl/yajl-1.0.11/lib\"",
 					"\"$(SRCROOT)/yajl/build/yajl-1.0.11/lib\"",
 				);
 				PRODUCT_NAME = SXXXXXXX;
