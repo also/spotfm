@@ -1,5 +1,4 @@
 extension.send = function (sender, data) {
-    console.log('send', data);
     sender.dispatchMessage('data', data);
 };
 

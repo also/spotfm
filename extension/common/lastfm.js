@@ -12,13 +12,10 @@ document.window.addEvent('click', function (event) {
 });
 
 document.window.addEvent('unload', function (event) {
-    console.log('unload');
     spotfm.pageUnloaded();
 });
 
 extension.onMessage = function(message) {
-    console.log('onMessage', message);
-
     var action = message.action;
     var options = message.options;
 
@@ -102,23 +99,14 @@ function getRowInfo (trElt) {
     return trackInfo;
 }
 
-var checkForSessionStarted;
 var lastfmSession;
+
 window.addEvent('domready', function() {
     var scriptElt = new Element('script', {src: extension.getURL('lastfm-internal.js')});
     document.body.appendChild(scriptElt);
-    checkForSessionStarted = new Date().getTime();
-    window.setTimeout(checkForSession, 100);
-});
 
-function checkForSession () {
-    var sessionJSON = document.body.getProperty('data-session');
-    if (!sessionJSON) {
-        if (new Date().getTime() - checkForSessionStarted < 1000) {
-            window.setTimeout(checkForSession, 100);
-        }
-    }
-    else {
+    document.addEventListener('lastfmSession', function (event) {
+        var sessionJSON = document.body.getProperty('data-session');
         spotfm.setLastfmSession(JSON.parse(sessionJSON));
-    }
-}
+    })
+});
