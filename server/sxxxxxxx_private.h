@@ -6,8 +6,9 @@
 #include <stdlib.h>
 
 #include <pthread.h>
-#include <libspotify/api.h>
 #include "server.h"
+
+#include "spotify.h"
 
 #include "audio.h"
 
@@ -55,5 +56,7 @@ void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t l
 void sxxxxxxx_monitor(client *c);
 void sxxxxxxx_monitor_end(client *c);
 void sxxxxxxx_play(sxxxxxxx_session *session, char *id);
+void send_event(sxxxxxxx_session *s, char *event);
+void try_to_play(sxxxxxxx_session *session);
 
 #endif

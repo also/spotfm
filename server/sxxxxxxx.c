@@ -8,49 +8,10 @@
 
 #include <yajl/yajl_gen.h>
 
-#include "appkey.c"
-
 #include "server.h"
-
-static void logged_in(sp_session *sess, sp_error error);
-static void notify_main_thread(sp_session *sess);
-static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames);
-static void metadata_updated(sp_session *sess);
-static void play_token_lost(sp_session *sess);
-static void log_message(sp_session *session, const char *data);
-static void message_to_user(sp_session *session, const char *data);
-static void end_of_track(sp_session *sess);
-
-static void send_event(sxxxxxxx_session *s, char *event);
-
-static sp_session_callbacks session_callbacks = {
-	.logged_in = &logged_in,
-	.notify_main_thread = &notify_main_thread,
-	.music_delivery = &music_delivery,
-	.metadata_updated = &metadata_updated,
-	.play_token_lost = &play_token_lost,
-	.log_message = &log_message,
-	.end_of_track = &end_of_track,
-	.message_to_user = &message_to_user,
-};
-
-static sp_session_config spconfig = {
-	.api_version = SPOTIFY_API_VERSION,
-	.cache_location = "tmp",
-	.settings_location = "tmp",
-	.application_key = g_appkey,
-	.application_key_size = 0, // Set in main()
-	.user_agent = "spotfm",
-	.callbacks = &session_callbacks,
-	NULL,
-};
-
-// we have to keep a global because spotify doesn't give us a way to reference this from its callbacks
-static sxxxxxxx_session *g_session;
 
 static void* main_loop(void *sess);
 static void* watchdog_loop(void *sess);
-static void try_to_play(sxxxxxxx_session *session);
 
 static yajl_gen begin_event(sxxxxxxx_session *s, const char *event);
 
@@ -70,98 +31,13 @@ static void handle_player_stop(audio_player_t *player) {
 	session->state = STOPPED;
 	if (session->track_ending) {
 		session->track_ending = false;
-		send_event(g_session, "end_of_track");
+		send_event(session, "end_of_track");
 	}
 	send_event(session, "stopped");
 	sxxxxxxx_log(session, "handle_player_stop");
 }
 
-# pragma mark Spotify Callbacks
-
-static void logged_in(sp_session *sess, sp_error error) {
-	if (SP_ERROR_OK != error) {
-		sxxxxxxx_log(g_session, "Login failed: %s\n", sp_error_message(error));
-		exit(2);
-	}
-}
-
-static void notify_main_thread(sp_session *sess) {
-	pthread_mutex_lock(&g_session->notify_mutex);
-	g_session->notify_do = 1;
-	pthread_cond_signal(&g_session->notify_cond);
-	pthread_mutex_unlock(&g_session->notify_mutex);
-}
-
-static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames) {
-	audio_fifo_t *af = &g_session->player.af;
-	if (g_session->state != PLAYING) {
-		g_session->state = PLAYING;
-		audio_start(&g_session->player);
-		send_event(g_session, "start_of_track");
-		send_event(g_session, "playing");
-	}
-
-	audio_fifo_data_t *afd;
-	size_t s;
-	
-	if (num_frames == 0) {
-		return 0; // Audio discontinuity, do nothing
-	}
-	
-	pthread_mutex_lock(&af->mutex);
-	
-	/* Buffer one second of audio */
-	if (af->qlen > format->sample_rate) {
-		pthread_mutex_unlock(&af->mutex);
-		return 0;
-	}
-	
-	s = num_frames * sizeof(int16_t) * format->channels;
-	
-	afd = malloc(sizeof(audio_fifo_data_t) + s);
-	memcpy(afd->samples, frames, s);
-	
-	afd->nsamples = num_frames;
-	
-	afd->rate = format->sample_rate;
-	afd->channels = format->channels;
-	
-	audio_enqueue(&g_session->player, afd);
-	
-	pthread_cond_signal(&af->cond);
-	pthread_mutex_unlock(&af->mutex);
-
-	g_session->frames_since_seek += num_frames;
-	
-	return num_frames;
-}
-
-static void metadata_updated(sp_session *sess) {
-	try_to_play(g_session);
-}
-
-static void play_token_lost(sp_session *sess) {
-	// we can lose the play token even if there is no track
-	audio_finish(&g_session->player);
-}
-
-static void log_message(sp_session *session, const char *data) {
-	sxxxxxxx_log(g_session, "libspotify log: %s", data);
-}
-
-static void message_to_user(sp_session *session, const char *data) {
-	sxxxxxxx_log(g_session, "libspotify message_to_user: %s", data);
-}
-
-static void end_of_track(sp_session *sess) {
-	g_session->track_ending = true;
-	audio_finish(&g_session->player);
-	g_session->track = NULL;
-	// TODO better to leak than to crash...
-	//sp_session_player_unload(sess);
-}
-
-static void try_to_play(sxxxxxxx_session *session) {
+void try_to_play(sxxxxxxx_session *session) {
 	if (!session->next_track) {
 		return;
 	}
@@ -204,7 +80,6 @@ static void try_to_play(sxxxxxxx_session *session) {
 }
 
 void sxxxxxxx_init(sxxxxxxx_session **session, sxxxxxxx_session_config * config, const char *username, const char *password) {
-	sp_error err;
 	sxxxxxxx_session *s;
 	
 	s = *session = (_sxxxxxxx_session *) malloc(sizeof(_sxxxxxxx_session));
@@ -214,16 +89,8 @@ void sxxxxxxx_init(sxxxxxxx_session **session, sxxxxxxx_session_config * config,
 	s->track = NULL;
 	s->state = STOPPED;
 	send_event(s, "stopped");
-	g_session = s;
-	
-	spconfig.application_key_size = g_appkey_size;
-	
-	err = sp_session_init(&spconfig, &s->spotify_session);
-	
-	if (SP_ERROR_OK != err) {
-		sxxxxxxx_log(s, "Unable to create session: %s", sp_error_message(err));
-		exit(1);
-	}
+
+	sx_spotify_init(s);
 	
 	// set up locks
 	pthread_mutex_init(&s->spotify_mutex, NULL);
@@ -316,7 +183,7 @@ static void* watchdog_loop(void *sess) {
 	for(;;) {
 		waitfor(&cond, &lock, 1000);
 		int position;
-		audio_get_position(&g_session->player, &position);
+		audio_get_position(&session->player, &position);
 		pthread_mutex_unlock(&lock);
 		if (previous_frames_since_seek != session->frames_since_seek || previous_seek_position != session->seek_position) {
 			double position = get_position(session);
@@ -454,7 +321,7 @@ static void finish_event_send(client *c, yajl_gen g) {
 	yajl_gen_free(g);
 }
 
-static void send_event(sxxxxxxx_session *s, char *event) {
+void send_event(sxxxxxxx_session *s, char *event) {
 	yajl_gen g = begin_event(s, event);
 	finish_event_notify_monitors(s, g);
 }
