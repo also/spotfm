@@ -114,6 +114,8 @@
 			children = (
 				256AC3D80F4B6AC300CF3369 /* serverAppDelegate.h */,
 				256AC3D90F4B6AC300CF3369 /* serverAppDelegate.m */,
+				9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */,
+				9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -147,9 +149,9 @@
 		29B97314FDCFA39411CA2CEA /* server */ = {
 			isa = PBXGroup;
 			children = (
+				94D0FE56129F2F9E00E7E09E /* OS X */,
 				9499E98A128389F00002B79F /* js */,
 				9471D5F7126A15A30042C978 /* http-parser */,
-				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
@@ -161,7 +163,6 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				94E0324F126A2B1F00A59FA5 /* osx-audio.c */,
 				94E03236126A2A1500A59FA5 /* queue.h */,
 				9471D512126A04A40042C978 /* server.h */,
 				9471D513126A04A40042C978 /* server.c */,
@@ -171,17 +172,10 @@
 				9471D58A126A140C0042C978 /* appkey.c */,
 				94E03232126A29B100A59FA5 /* audio.h */,
 				94E03231126A29B100A59FA5 /* audio.c */,
-				256AC3F00F4B6AF500CF3369 /* server_Prefix.pch */,
-				29B97316FDCFA39411CA2CEA /* main.m */,
 				948D122A127E55180082650E /* md5.h */,
 				948D122B127E55180082650E /* md5.c */,
 				948D1504127FA4810082650E /* web_socket.h */,
 				948D1505127FA4810082650E /* web_socket.c */,
-				9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */,
-				9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */,
-				9499EC101286157A0002B79F /* main.c */,
-				9499EC40128619020002B79F /* keychain.h */,
-				9499EC41128619020002B79F /* keychain.c */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -229,6 +223,20 @@
 			name = js;
 			path = ../js;
 			sourceTree = SOURCE_ROOT;
+		};
+		94D0FE56129F2F9E00E7E09E /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				080E96DDFE201D6D7F000001 /* Classes */,
+				94E0324F126A2B1F00A59FA5 /* osx-audio.c */,
+				256AC3F00F4B6AF500CF3369 /* server_Prefix.pch */,
+				29B97316FDCFA39411CA2CEA /* main.m */,
+				9499EC40128619020002B79F /* keychain.h */,
+				9499EC41128619020002B79F /* keychain.c */,
+				9499EC101286157A0002B79F /* main.c */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
