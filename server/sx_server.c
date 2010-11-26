@@ -1,5 +1,5 @@
-#include "sxxxxxxx_private.h"
-#include "server.h"
+#include "sx.h"
+#include "sx_server.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,10 +20,10 @@ int on_client_header_field(http_parser *parser, const char *p, size_t len);
 int on_client_header_value(http_parser *parser, const char *p, size_t len);
 int on_client_headers_complete(http_parser *parser);
 
-static void handle_client_request(client *c, char *body, size_t body_len);
-static char *get_header(client *c, char *name);
+static void handle_client_request(sx_client *c, char *body, size_t body_len);
+static char *get_header(sx_client *c, char *name);
 
-static char *get_header(client *c, char *name) {
+static char *get_header(sx_client *c, char *name) {
 	for (int i = 0; i < c->header_count; i++) {
 		if (!strcmp(name, c->headers[i].name)) {
 			return c->headers[i].value;
@@ -32,12 +32,12 @@ static char *get_header(client *c, char *name) {
 	return NULL;
 }
 
-static void send_client(client *c, char *data) {
+static void send_client(sx_client *c, char *data) {
 	send(c->fd, data, strlen(data), 0);
 }
 
 void* server_loop(void *s) {
-	sxxxxxxx_session *session = (sxxxxxxx_session *) s;
+	sx_session *session = (sx_session *) s;
 	int sockfd, newsockfd, err;
 	socklen_t clilen;
 	struct sockaddr_in cli_addr, serv_addr;
@@ -49,16 +49,16 @@ void* server_loop(void *s) {
 	serv_addr.sin_family      = AF_INET;
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serv_addr.sin_port        = htons(9999);
-	
+
 	int on = 1;
 	setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int));
-	
+
 	err = bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
 	if (err < 0) {
 		fprintf(stderr, "server: can't bind local address %d\n", err);
 		return NULL;
 	}
-	
+
 	listen(sockfd, 5);
 	for ( ; ; ) {
 		clilen = sizeof(cli_addr);
@@ -69,8 +69,8 @@ void* server_loop(void *s) {
 			return NULL;
 		}
 
-		client *c = (client *) malloc(sizeof(client));
-		bzero(c, sizeof(client));
+		sx_client *c = (sx_client *) malloc(sizeof(sx_client));
+		bzero(c, sizeof(sx_client));
 		c->session = session;
 		c->headers_complete = false;
 		c->fd = newsockfd;
@@ -78,13 +78,13 @@ void* server_loop(void *s) {
 		pthread_t client_thread;
 		pthread_create(&client_thread, NULL, run_client, c);
 	}
-	
+
 	close(sockfd);
 }
 
 void* run_client(void *x) {
-	client *c = (client *) x;
-	
+	sx_client *c = (sx_client *) x;
+
 	http_parser *parser = malloc(sizeof(http_parser));
 	http_parser_init(parser);
 	parser->data = c;
@@ -95,20 +95,20 @@ void* run_client(void *x) {
 	size_t len = 80*1024, nparsed;
 	char buf[len];
 	ssize_t recved;
-	
+
 	do {
 		recved = recv(c->fd, buf, len, 0);
 		if (recved < 0) {
 			/*  TODO Handle error. */
 			break;
 		}
-		
+
 		/* Start up / continue the parser.
 		 * Note we pass the recved==0 to http_parse_requests to signal
 		 * that EOF has been recieved.
 		 */
 		nparsed = http_parse_requests(parser, buf, recved);
-		
+
 		if (c->headers_complete) {
 			handle_client_request(c, buf + nparsed, recved - nparsed);
 			break;
@@ -121,7 +121,7 @@ void* run_client(void *x) {
 	if (c->fd > 0) {
 		close(c->fd);
 	}
-	
+
 	if (c->path) {
 		free(c->path);
 	}
@@ -136,12 +136,12 @@ void* run_client(void *x) {
 	}
 	free(c);
 	free(parser);
-	
+
 	return NULL;
 }
 
 int on_client_path(http_parser *parser, const char *p, size_t len) {
-	client *c = (client *) parser->data;
+	sx_client *c = (sx_client *) parser->data;
 
 	c->path = malloc(len);
 	c->path[len - 1] = 0;
@@ -151,7 +151,7 @@ int on_client_path(http_parser *parser, const char *p, size_t len) {
 }
 
 int on_client_header_field(http_parser *parser, const char *p, size_t len) {
-	client *c = (client *) parser->data;
+	sx_client *c = (sx_client *) parser->data;
 
 	if (c->header_count == 0 || CURRENT_HEADER->value_len > 0) {
 		// this is the first chunk of the name
@@ -173,7 +173,7 @@ int on_client_header_field(http_parser *parser, const char *p, size_t len) {
 }
 
 int on_client_header_value(http_parser *parser, const char *p, size_t len) {
-	client *c = (client *) parser->data;
+	sx_client *c = (sx_client *) parser->data;
 
 	size_t current_len = CURRENT_HEADER->value_len;
 	CURRENT_HEADER->value_len += len;
@@ -185,7 +185,7 @@ int on_client_header_value(http_parser *parser, const char *p, size_t len) {
 }
 
 int on_client_headers_complete(http_parser *parser) {
-	client *c = (client *) parser->data;
+	sx_client *c = (sx_client *) parser->data;
 	c->headers_complete = true;
 	return 0;
 }
@@ -195,15 +195,15 @@ static int handle_ws_message(ws_client *c, const char *at, size_t length) {
 	return 0;
 }
 
-static void handle_client_request(client *c, char *body, size_t body_len) {
+static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 	char *not_found_response = "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\n\r\nfalse\n";
 	char *ok_response = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\ntrue\n";
-	
+
 	bool ok = false;
 	size_t len = strlen(c->path);
 
 	if ((len == 27 || len == 41 || len == 57) && strstr(c->path, "play/") == c->path) {
-		sxxxxxxx_play(c->session, c->path + len - 22);
+		sx_play(c->session, c->path + len - 22);
 		ok = true;
 	}
 	else if (!strcmp("resume", c->path)) {
@@ -263,21 +263,21 @@ static void handle_client_request(client *c, char *body, size_t body_len) {
 			send_client(c, "/monitor\r\n\r\n");
 			send(c->fd, mdContext.digest, 16, 0);
 
-			sxxxxxxx_monitor(c);
+			sx_monitor(c);
 			// TODO if body_len < 8
 			ws_run(&ws_client, c->fd, body + 8, body_len - 8);
-			sxxxxxxx_monitor_end(c);
+			sx_monitor_end(c);
 			return;
 		}
 	}
-	
+
 	if (!ok) {
 		fprintf(stderr, "invalid url: %s\n", c->path);
 		send_client(c, not_found_response);
 		close(c->fd);
 		c->fd = -1;
 	}
-	
+
 	send_client(c, ok_response);
 	close(c->fd);
 	c->fd = -1;

@@ -16,7 +16,7 @@
 		9458ECAD12845BE500E3B662 /* libyajl.1.0.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9458ECAC12845BE500E3B662 /* libyajl.1.0.11.dylib */; };
 		9458ECBF128465BA00E3B662 /* libyajl.1.0.11.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9458ECAC12845BE500E3B662 /* libyajl.1.0.11.dylib */; };
 		9458ECE21284D3D700E3B662 /* SXXXXXXXApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = 9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */; };
-		9471D514126A04A40042C978 /* server.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D513126A04A40042C978 /* server.c */; };
+		9471D514126A04A40042C978 /* sx_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D513126A04A40042C978 /* sx_server.c */; };
 		9471D537126A06C80042C978 /* libspotify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9471D536126A06C80042C978 /* libspotify.framework */; };
 		9471D53E126A07060042C978 /* sxxxxxxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D53D126A07060042C978 /* sxxxxxxx.c */; };
 		9471D63B126A15A30042C978 /* http_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 9471D61E126A15A30042C978 /* http_parser.c */; };
@@ -28,7 +28,8 @@
 		9499E990128389FE0002B79F /* mootools-core-1.3-full-nocompat-yc.js in Resources */ = {isa = PBXBuildFile; fileRef = 9499E98C128389F00002B79F /* mootools-core-1.3-full-nocompat-yc.js */; };
 		9499E99A12838CD60002B79F /* controls.html in Resources */ = {isa = PBXBuildFile; fileRef = 9499E99612838CBB0002B79F /* controls.html */; };
 		9499EC42128619020002B79F /* keychain.c in Sources */ = {isa = PBXBuildFile; fileRef = 9499EC41128619020002B79F /* keychain.c */; };
-		94CC837A12A06F8200C14128 /* spotify.c in Sources */ = {isa = PBXBuildFile; fileRef = 94CC837812A06F8200C14128 /* spotify.c */; };
+		94CC837A12A06F8200C14128 /* sx_spotify.c in Sources */ = {isa = PBXBuildFile; fileRef = 94CC837812A06F8200C14128 /* sx_spotify.c */; };
+		94CC837D12A07B2500C14128 /* sx_json.c in Sources */ = {isa = PBXBuildFile; fileRef = 94CC837B12A07B2500C14128 /* sx_json.c */; };
 		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
@@ -66,12 +67,12 @@
 		9458ECAC12845BE500E3B662 /* libyajl.1.0.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libyajl.1.0.11.dylib; path = "yajl/build/yajl-1.0.11/lib/libyajl.1.0.11.dylib"; sourceTree = "<group>"; };
 		9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SXXXXXXXApplication.h; sourceTree = "<group>"; };
 		9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SXXXXXXXApplication.m; sourceTree = "<group>"; };
-		9471D512126A04A40042C978 /* server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = server.h; sourceTree = "<group>"; };
-		9471D513126A04A40042C978 /* server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = server.c; sourceTree = "<group>"; };
+		9471D512126A04A40042C978 /* sx_server.h */ = {isa = PBXFileReference; fileEncoding = 4; path = sx_server.h; sourceTree = "<group>"; };
+		9471D513126A04A40042C978 /* sx_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sx_server.c; sourceTree = "<group>"; };
 		9471D536126A06C80042C978 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libspotify.framework; sourceTree = "<group>"; };
 		9471D53C126A07060042C978 /* sxxxxxxx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sxxxxxxx.h; sourceTree = "<group>"; };
 		9471D53D126A07060042C978 /* sxxxxxxx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sxxxxxxx.c; sourceTree = "<group>"; };
-		9471D568126A09F60042C978 /* sxxxxxxx_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sxxxxxxx_private.h; sourceTree = "<group>"; };
+		9471D568126A09F60042C978 /* sx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sx.h; sourceTree = "<group>"; };
 		9471D58A126A140C0042C978 /* appkey.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = appkey.c; sourceTree = "<group>"; };
 		9471D61E126A15A30042C978 /* http_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = http_parser.c; sourceTree = "<group>"; };
 		9471D61F126A15A30042C978 /* http_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http_parser.h; sourceTree = "<group>"; };
@@ -86,8 +87,10 @@
 		9499EC101286157A0002B79F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		9499EC40128619020002B79F /* keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keychain.h; sourceTree = "<group>"; };
 		9499EC41128619020002B79F /* keychain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = keychain.c; sourceTree = "<group>"; };
-		94CC837812A06F8200C14128 /* spotify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spotify.c; sourceTree = "<group>"; };
-		94CC837912A06F8200C14128 /* spotify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spotify.h; sourceTree = "<group>"; };
+		94CC837812A06F8200C14128 /* sx_spotify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sx_spotify.c; sourceTree = "<group>"; };
+		94CC837912A06F8200C14128 /* sx_spotify.h */ = {isa = PBXFileReference; fileEncoding = 4; path = sx_spotify.h; sourceTree = "<group>"; };
+		94CC837B12A07B2500C14128 /* sx_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sx_json.c; sourceTree = "<group>"; };
+		94CC837C12A07B2500C14128 /* sx_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sx_json.h; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
 		94E03232126A29B100A59FA5 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
@@ -167,11 +170,11 @@
 			isa = PBXGroup;
 			children = (
 				94E03236126A2A1500A59FA5 /* queue.h */,
-				9471D512126A04A40042C978 /* server.h */,
-				9471D513126A04A40042C978 /* server.c */,
+				9471D512126A04A40042C978 /* sx_server.h */,
+				9471D513126A04A40042C978 /* sx_server.c */,
 				9471D53C126A07060042C978 /* sxxxxxxx.h */,
 				9471D53D126A07060042C978 /* sxxxxxxx.c */,
-				9471D568126A09F60042C978 /* sxxxxxxx_private.h */,
+				9471D568126A09F60042C978 /* sx.h */,
 				9471D58A126A140C0042C978 /* appkey.c */,
 				94E03232126A29B100A59FA5 /* audio.h */,
 				94E03231126A29B100A59FA5 /* audio.c */,
@@ -179,8 +182,10 @@
 				948D122B127E55180082650E /* md5.c */,
 				948D1504127FA4810082650E /* web_socket.h */,
 				948D1505127FA4810082650E /* web_socket.c */,
-				94CC837812A06F8200C14128 /* spotify.c */,
-				94CC837912A06F8200C14128 /* spotify.h */,
+				94CC837812A06F8200C14128 /* sx_spotify.c */,
+				94CC837912A06F8200C14128 /* sx_spotify.h */,
+				94CC837B12A07B2500C14128 /* sx_json.c */,
+				94CC837C12A07B2500C14128 /* sx_json.h */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -311,7 +316,7 @@
 			files = (
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				256AC3DA0F4B6AC300CF3369 /* serverAppDelegate.m in Sources */,
-				9471D514126A04A40042C978 /* server.c in Sources */,
+				9471D514126A04A40042C978 /* sx_server.c in Sources */,
 				9471D53E126A07060042C978 /* sxxxxxxx.c in Sources */,
 				9471D63B126A15A30042C978 /* http_parser.c in Sources */,
 				94E03233126A29B100A59FA5 /* audio.c in Sources */,
@@ -320,7 +325,8 @@
 				948D1506127FA4810082650E /* web_socket.c in Sources */,
 				9458ECE21284D3D700E3B662 /* SXXXXXXXApplication.m in Sources */,
 				9499EC42128619020002B79F /* keychain.c in Sources */,
-				94CC837A12A06F8200C14128 /* spotify.c in Sources */,
+				94CC837A12A06F8200C14128 /* sx_spotify.c in Sources */,
+				94CC837D12A07B2500C14128 /* sx_json.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

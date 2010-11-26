@@ -13,7 +13,7 @@ typedef struct header {
 } header;
 
 typedef struct client {
-	struct sxxxxxxx_session *session;
+	struct sx_session *session;
 	void *data;
 	int fd;
 	ws_client *ws_client;
@@ -21,7 +21,7 @@ typedef struct client {
 	char *path;
 	header headers[MAX_HEADERS];
 	int header_count;
-} client;
+} sx_client;
 
 void* server_loop(void *sp);
 

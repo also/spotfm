@@ -1,4 +1,4 @@
-#include "sxxxxxxx_private.h"
+#include "sx.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -6,38 +6,23 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 
-#include <yajl/yajl_gen.h>
+#include "sx_server.h"
 
-#include "server.h"
+#include "sx_json.h"
 
 static void* main_loop(void *sess);
 static void* watchdog_loop(void *sess);
 
-static yajl_gen begin_event(sxxxxxxx_session *s, const char *event);
+static yajl_gen begin_event(sx_session *s, const char *event);
+static yajl_gen begin_track_info_event(sx_session *session);
 
-static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g);
-static void finish_event_send(client *c, yajl_gen g);
+static void finish_event_notify_monitors(sx_session *s, yajl_gen g);
+static void finish_event_send(sx_client *c, yajl_gen g);
 
-static yajl_gen begin_track_info_event(sxxxxxxx_session *session);
-yajl_gen_status yajl_gen_string0(yajl_gen g, const char * str) {
-	return yajl_gen_string(g, (unsigned char *) str, strlen(str));
-}
+static double get_position(sx_session *session);
+static void handle_player_stop(audio_player_t *player);
 
-static double get_position(sxxxxxxx_session *session);
-
-
-static void handle_player_stop(audio_player_t *player) {
-	sxxxxxxx_session *session = (sxxxxxxx_session *) player->data;
-	session->state = STOPPED;
-	if (session->track_ending) {
-		session->track_ending = false;
-		send_event(session, "end_of_track");
-	}
-	send_event(session, "stopped");
-	sxxxxxxx_log(session, "handle_player_stop");
-}
-
-void try_to_play(sxxxxxxx_session *session) {
+void sx_try_to_play(sx_session *session) {
 	if (!session->next_track) {
 		return;
 	}
@@ -56,8 +41,8 @@ void try_to_play(sxxxxxxx_session *session) {
 	session->next_track = NULL;
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
-		sxxxxxxx_log(session, "failed loading player: %s", sp_error_message(error));
-		send_event(session, "playback_failed");
+		sx_log(session, "failed loading player: %s", sp_error_message(error));
+		sx_send_event(session, "playback_failed");
 		pthread_mutex_unlock(&session->spotify_mutex);
 		return;
 	}
@@ -79,16 +64,16 @@ void try_to_play(sxxxxxxx_session *session) {
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
 
-void sxxxxxxx_init(sxxxxxxx_session **session, sxxxxxxx_session_config * config, const char *username, const char *password) {
-	sxxxxxxx_session *s;
+void sxxxxxxx_init(sx_session **session, sxxxxxxx_session_config * config, const char *username, const char *password) {
+	sx_session *s;
 	
-	s = *session = (_sxxxxxxx_session *) malloc(sizeof(_sxxxxxxx_session));
-	bzero(s, sizeof(_sxxxxxxx_session));
+	s = *session = (sx_session *) malloc(sizeof(sx_session));
+	bzero(s, sizeof(sx_session));
 	s->config = malloc(sizeof(sxxxxxxx_session_config));
 	memcpy(s->config, config, sizeof(sxxxxxxx_session_config));
 	s->track = NULL;
 	s->state = STOPPED;
-	send_event(s, "stopped");
+	sx_send_event(s, "stopped");
 
 	sx_spotify_init(s);
 	
@@ -105,7 +90,7 @@ void sxxxxxxx_init(sxxxxxxx_session **session, sxxxxxxx_session_config * config,
 	audio_init(&s->player);
 }
 
-void sxxxxxxx_log(sxxxxxxx_session *s, const char *message, ...) {
+void sx_log(sx_session *s, const char *message, ...) {
 	if (!s->config->log) return;
 
 	va_list argptr;
@@ -116,7 +101,7 @@ void sxxxxxxx_log(sxxxxxxx_session *s, const char *message, ...) {
 	s->config->log(NULL, formatted_message);
 }
 
-void sxxxxxxx_run(sxxxxxxx_session *session, bool thread) {
+void sxxxxxxx_run(sx_session *session, bool thread) {
 	pthread_t server_thread, main_thread, watchdog_thread;
 	pthread_create(&server_thread, NULL, server_loop, session);
 	pthread_create(&watchdog_thread, NULL, watchdog_loop, session);
@@ -145,7 +130,7 @@ static int waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mute
 }
 
 static void* main_loop(void *s) {
-	sxxxxxxx_session *session = (sxxxxxxx_session *) s;
+	sx_session *session = (sx_session *) s;
 	int next_timeout = 0;
 	pthread_mutex_lock(&session->notify_mutex);
 	
@@ -170,7 +155,7 @@ static void* main_loop(void *s) {
 }
 
 static void* watchdog_loop(void *sess) {
-	sxxxxxxx_session *session = (sxxxxxxx_session *) sess;
+	sx_session *session = (sx_session *) sess;
 
 	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 	pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -200,11 +185,22 @@ static void* watchdog_loop(void *sess) {
 	return NULL;
 }
 
-static double get_position(sxxxxxxx_session *session) {
+static double get_position(sx_session *session) {
 	return (double) session->frames_since_seek / 44.100 + session->seek_position;
 }
 
-static yajl_gen begin_track_info_event(sxxxxxxx_session *session) {
+static void handle_player_stop(audio_player_t *player) {
+	sx_session *session = (sx_session *) player->data;
+	session->state = STOPPED;
+	if (session->track_ending) {
+		session->track_ending = false;
+		sx_send_event(session, "end_of_track");
+	}
+	sx_send_event(session, "stopped");
+	sx_log(session, "handle_player_stop");
+}
+
+static yajl_gen begin_track_info_event(sx_session *session) {
 	yajl_gen g = begin_event(session, "track_info");
 
 	yajl_gen_string0(g, "track_name");
@@ -228,7 +224,7 @@ static yajl_gen begin_track_info_event(sxxxxxxx_session *session) {
 	return g;
 }
 
-void sxxxxxxx_monitor(client *c) {
+void sx_monitor(sx_client *c) {
 	monitor_list_item *item = malloc(sizeof(monitor_list_item));
 	bzero(item, sizeof(monitor_list_item));
 	item->c = c;
@@ -259,16 +255,16 @@ void sxxxxxxx_monitor(client *c) {
 	yajl_gen_double(g, position);
 	finish_event_send(c, g);
 	if (c->session->state == PLAYING) {
-		send_event(c->session, "playing");
+		sx_send_event(c->session, "playing");
 	}
 	else {
-		send_event(c->session, "stopped");
+		sx_send_event(c->session, "stopped");
 	}
 
-	sxxxxxxx_log(c->session, "client %p added to monitor list", c);
+	sx_log(c->session, "client %p added to monitor list", c);
 }
 
-void sxxxxxxx_monitor_end(client *c) {
+void sx_monitor_end(sx_client *c) {
 	monitor_list_item *item = c->data;
 
 	if (item->previous) {
@@ -280,11 +276,11 @@ void sxxxxxxx_monitor_end(client *c) {
 	if (item->next) {
 		item->next->previous = item->previous;
 	}
-	sxxxxxxx_log(c->session, "client %p removed from monitor list", c);
+	sx_log(c->session, "client %p removed from monitor list", c);
 	free(item);
 }
 
-void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t len) {
+void sxxxxxxx_notify_monitors(sx_session *s, const char *message, size_t len) {
 	monitor_list_item *monitor = s->monitors;
 
 	while (monitor) {
@@ -293,7 +289,7 @@ void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t l
 	}
 }
 
-static yajl_gen begin_event(sxxxxxxx_session *s, const char *event) {
+static yajl_gen begin_event(sx_session *s, const char *event) {
 	yajl_gen_config conf = { false };
 	yajl_gen g;
 	g = yajl_gen_alloc(&conf, NULL);
@@ -303,7 +299,7 @@ static yajl_gen begin_event(sxxxxxxx_session *s, const char *event) {
 	return g;
 }
 
-static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g) {
+static void finish_event_notify_monitors(sx_session *s, yajl_gen g) {
 	yajl_gen_map_close(g);
 	const unsigned char *buf;
 	unsigned int len;
@@ -312,7 +308,7 @@ static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g) {
 	yajl_gen_free(g);
 }
 
-static void finish_event_send(client *c, yajl_gen g) {
+static void finish_event_send(sx_client *c, yajl_gen g) {
 	yajl_gen_map_close(g);
 	const unsigned char *buf;
 	unsigned int len;
@@ -321,12 +317,12 @@ static void finish_event_send(client *c, yajl_gen g) {
 	yajl_gen_free(g);
 }
 
-void send_event(sxxxxxxx_session *s, char *event) {
+void sx_send_event(sx_session *s, char *event) {
 	yajl_gen g = begin_event(s, event);
 	finish_event_notify_monitors(s, g);
 }
 
-void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
+void sx_play(sx_session *session, char *id) {
 	sp_session_player_play(session->spotify_session, false);
 	// TODO what is necessary?
 	audio_fifo_flush(&session->player.af);
@@ -343,32 +339,32 @@ void sxxxxxxx_play(sxxxxxxx_session *session, char *id) {
 		sp_track_add_ref(track);
 		session->next_track = track;
 		session->state = BUFFERING;
-		send_event(session, "buffering");
-		try_to_play(session);
+		sx_send_event(session, "buffering");
+		sx_try_to_play(session);
 	}
 	
 	sp_link_release(link);
 }
 
-void sxxxxxxx_resume(sxxxxxxx_session *session) {
+void sxxxxxxx_resume(sx_session *session) {
 
 	if (session->track) {
 		sp_session_player_play(session->spotify_session, true);
 	}
 	else {
-		send_event(session, "play");
+		sx_send_event(session, "play");
 	}
 
 }
 
-void sxxxxxxx_stop(sxxxxxxx_session *session) {
+void sxxxxxxx_stop(sx_session *session) {
 	// TODO what is necessary?
 	audio_pause(&session->player);
 	sp_session_player_play(session->spotify_session, false);
 	session->state = PAUSED;
 }
 
-void sxxxxxxx_toggle_play(sxxxxxxx_session *session) {
+void sxxxxxxx_toggle_play(sx_session *session) {
 	if (session->state == STOPPED || session->state == PAUSED) {
 		sxxxxxxx_resume(session);
 	}
@@ -377,7 +373,7 @@ void sxxxxxxx_toggle_play(sxxxxxxx_session *session) {
 	}
 }
 
-void sxxxxxxx_seek(sxxxxxxx_session *session, int offset) {
+void sxxxxxxx_seek(sx_session *session, int offset) {
 	// TODO what is necessary?
 	audio_fifo_flush(&session->player.af);
 	audio_reset(&session->player);
@@ -390,15 +386,15 @@ void sxxxxxxx_seek(sxxxxxxx_session *session, int offset) {
 	finish_event_notify_monitors(session, g);
 }
 
-void sxxxxxxx_previous(sxxxxxxx_session *session) {
+void sxxxxxxx_previous(sx_session *session) {
 	if (get_position(session) < 3000) {
-		send_event(session, "previous");
+		sx_send_event(session, "previous");
 	}
 	else {
 		sxxxxxxx_seek(session, 0);
 	}
 }
 
-void sxxxxxxx_next(sxxxxxxx_session *session) {
-	send_event(session, "next");
+void sxxxxxxx_next(sx_session *session) {
+	sx_send_event(session, "next");
 }

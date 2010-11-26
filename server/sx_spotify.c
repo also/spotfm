@@ -1,6 +1,6 @@
-#include "spotify.h"
+#include "sx_spotify.h"
 
-#include "sxxxxxxx_private.h"
+#include "sx.h"
 
 #import "string.h"
 
@@ -16,7 +16,7 @@ static void message_to_user(sp_session *session, const char *data);
 static void end_of_track(sp_session *sess);
 
 // we have to keep a global because spotify doesn't give us a way to reference this from its callbacks
-static sxxxxxxx_session *g_session;
+static sx_session *g_session;
 
 static sp_session_callbacks session_callbacks = {
 	.logged_in = &logged_in,
@@ -40,7 +40,7 @@ static sp_session_config spconfig = {
 	NULL,
 };
 
-void sx_spotify_init(sxxxxxxx_session *s) {
+void sx_spotify_init(sx_session *s) {
 	sp_error err;
 
 	g_session = s;
@@ -49,14 +49,14 @@ void sx_spotify_init(sxxxxxxx_session *s) {
 	err = sp_session_init(&spconfig, &s->spotify_session);
 
 	if (SP_ERROR_OK != err) {
-		sxxxxxxx_log(s, "Unable to create session: %s", sp_error_message(err));
+		sx_log(s, "Unable to create session: %s", sp_error_message(err));
 		exit(1);
 	}
 }
 
 static void logged_in(sp_session *sess, sp_error error) {
 	if (SP_ERROR_OK != error) {
-		sxxxxxxx_log(g_session, "Login failed: %s\n", sp_error_message(error));
+		sx_log(g_session, "Login failed: %s\n", sp_error_message(error));
 		exit(2);
 	}
 }
@@ -73,8 +73,8 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	if (g_session->state != PLAYING) {
 		g_session->state = PLAYING;
 		audio_start(&g_session->player);
-		send_event(g_session, "start_of_track");
-		send_event(g_session, "playing");
+		sx_send_event(g_session, "start_of_track");
+		sx_send_event(g_session, "playing");
 	}
 
 	audio_fifo_data_t *afd;
@@ -113,7 +113,7 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 }
 
 static void metadata_updated(sp_session *sess) {
-	try_to_play(g_session);
+	sx_try_to_play(g_session);
 }
 
 static void play_token_lost(sp_session *sess) {
@@ -122,11 +122,11 @@ static void play_token_lost(sp_session *sess) {
 }
 
 static void log_message(sp_session *session, const char *data) {
-	sxxxxxxx_log(g_session, "libspotify log: %s", data);
+	sx_log(g_session, "libspotify log: %s", data);
 }
 
 static void message_to_user(sp_session *session, const char *data) {
-	sxxxxxxx_log(g_session, "libspotify message_to_user: %s", data);
+	sx_log(g_session, "libspotify message_to_user: %s", data);
 }
 
 static void end_of_track(sp_session *sess) {
