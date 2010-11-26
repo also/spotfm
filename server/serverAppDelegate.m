@@ -10,6 +10,8 @@
 @synthesize statusMenu;
 @synthesize webView;
 
+static void _log(void *data, const char *message);
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	char *username, *password;
 	
@@ -27,7 +29,11 @@
 	NSString* controlsFile = [[NSBundle mainBundle] pathForResource:@"controls" ofType:@"html"];
 	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:controlsFile]]];
 
-	sxxxxxxx_init(&session, username, password);
+	sxxxxxxx_session_config config = {
+		.log = _log
+	};
+
+	sxxxxxxx_init(&session, &config, username, password);
 	free(username);
 	free(password);
 	[self showStatusItem];
@@ -43,6 +49,10 @@
     [statusItem setTitle: NSLocalizedString(@"•㎙",@"")];
     [statusItem setHighlightMode:YES];
 	[statusItem setMenu:statusMenu];
+}
+
+void _log(void *data, const char *message) {
+	NSLog(@"%s", message);
 }
 
 - (IBAction) showControls:(id)sender {

@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
 
@@ -69,14 +70,14 @@ static void handle_player_stop(audio_player_t *player) {
 		send_event(g_session, "end_of_track");
 	}
 	send_event(session, "stopped");
-	printf("handle_player_stop\n");
+	sxxxxxxx_log(session, "handle_player_stop");
 }
 
 # pragma mark Spotify Callbacks
 
 static void logged_in(sp_session *sess, sp_error error) {
 	if (SP_ERROR_OK != error) {
-		fprintf(stderr, "Login failed: %s\n", sp_error_message(error));
+		sxxxxxxx_log(g_session, "Login failed: %s\n", sp_error_message(error));
 		exit(2);
 	}
 }
@@ -142,11 +143,11 @@ static void play_token_lost(sp_session *sess) {
 }
 
 static void log_message(sp_session *session, const char *data) {
-	fprintf(stderr, "log: %s", data);
+	sxxxxxxx_log(g_session, "libspotify log: %s", data);
 }
 
 static void message_to_user(sp_session *session, const char *data) {
-	fprintf(stderr, "Spotify Says: %s\n", data);
+	sxxxxxxx_log(g_session, "libspotify message_to_user: %s", data);
 }
 
 static void end_of_track(sp_session *sess) {
@@ -176,8 +177,8 @@ static void try_to_play(sxxxxxxx_session *session) {
 	session->next_track = NULL;
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
-		fprintf(stderr, "failed loading player: %s\n", sp_error_message(error));
-		send_event(g_session, "playback_failed");
+		sxxxxxxx_log(session, "failed loading player: %s", sp_error_message(error));
+		send_event(session, "playback_failed");
 		pthread_mutex_unlock(&session->spotify_mutex);
 		return;
 	}
@@ -199,12 +200,14 @@ static void try_to_play(sxxxxxxx_session *session) {
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
 
-void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char *password) {
+void sxxxxxxx_init(sxxxxxxx_session **session, sxxxxxxx_session_config * config, const char *username, const char *password) {
 	sp_error err;
 	sxxxxxxx_session *s;
 	
 	s = *session = (_sxxxxxxx_session *) malloc(sizeof(_sxxxxxxx_session));
 	bzero(s, sizeof(_sxxxxxxx_session));
+	s->config = malloc(sizeof(sxxxxxxx_session_config));
+	memcpy(s->config, config, sizeof(sxxxxxxx_session_config));
 	s->track = NULL;
 	s->state = STOPPED;
 	send_event(s, "stopped");
@@ -215,7 +218,7 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	err = sp_session_init(&spconfig, &s->spotify_session);
 	
 	if (SP_ERROR_OK != err) {
-		fprintf(stderr, "Unable to create session: %s\n", sp_error_message(err));
+		sxxxxxxx_log(s, "Unable to create session: %s", sp_error_message(err));
 		exit(1);
 	}
 	
@@ -230,6 +233,17 @@ void sxxxxxxx_init(sxxxxxxx_session **session, const char *username, const char 
 	s->player.on_stop = handle_player_stop;
 
 	audio_init(&s->player);
+}
+
+void sxxxxxxx_log(sxxxxxxx_session *s, const char *message, ...) {
+	if (!s->config->log) return;
+
+	va_list argptr;
+	va_start(argptr, message);
+	char *formatted_message;
+	vasprintf(&formatted_message, message, argptr);
+	va_end(argptr);
+	s->config->log(NULL, formatted_message);
 }
 
 void sxxxxxxx_run(sxxxxxxx_session *session, bool thread) {
@@ -381,7 +395,7 @@ void sxxxxxxx_monitor(client *c) {
 		send_event(c->session, "stopped");
 	}
 
-	fprintf(stderr, "client %p added to monitor list\n", c);
+	sxxxxxxx_log(c->session, "client %p added to monitor list", c);
 }
 
 void sxxxxxxx_monitor_end(client *c) {
@@ -396,7 +410,7 @@ void sxxxxxxx_monitor_end(client *c) {
 	if (item->next) {
 		item->next->previous = item->previous;
 	}
-	fprintf(stderr, "client %p removed from monitor list\n", c);
+	sxxxxxxx_log(c->session, "client %p removed from monitor list", c);
 	free(item);
 }
 

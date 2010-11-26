@@ -28,6 +28,7 @@ struct monitor_list_item {
 };
 
 typedef struct sxxxxxxx_session {
+	sxxxxxxx_session_config *config;
 	sxxxxxxx_state state;
 	bool track_ending;
 	sp_session *spotify_session;
@@ -46,6 +47,8 @@ typedef struct sxxxxxxx_session {
 	int notify_do;
 	monitor_list_item *monitors;
 } _sxxxxxxx_session;
+
+void sxxxxxxx_log(sxxxxxxx_session *s, const char *message, ...);
 
 void sxxxxxxx_notify_monitors(sxxxxxxx_session *s, const char *message, size_t len);
 
