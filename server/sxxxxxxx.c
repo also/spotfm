@@ -58,6 +58,9 @@ static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g);
 static void finish_event_send(client *c, yajl_gen g);
 
 static yajl_gen begin_track_info_event(sxxxxxxx_session *session);
+yajl_gen_status yajl_gen_string0(yajl_gen g, const char * str) {
+	return yajl_gen_string(g, (unsigned char *) str, strlen(str));
+}
 
 static double get_position(sxxxxxxx_session *session);
 
@@ -193,7 +196,7 @@ static void try_to_play(sxxxxxxx_session *session) {
 		finish_event_notify_monitors(session, g);
 
 		g = begin_event(session, "position");
-		yajl_gen_string(g, "position", 8);
+		yajl_gen_string0(g, "position");
 		yajl_gen_integer(g, 0);
 		finish_event_notify_monitors(session, g);
 	}
@@ -318,7 +321,7 @@ static void* watchdog_loop(void *sess) {
 		if (previous_frames_since_seek != session->frames_since_seek || previous_seek_position != session->seek_position) {
 			double position = get_position(session);
 			yajl_gen g = begin_event(session, "position");
-			yajl_gen_string(g, "position", 8);
+			yajl_gen_string0(g, "position");
 			yajl_gen_double(g, position);
 			finish_event_notify_monitors(session, g);
 			previous_frames_since_seek = session->frames_since_seek;
@@ -337,22 +340,22 @@ static double get_position(sxxxxxxx_session *session) {
 static yajl_gen begin_track_info_event(sxxxxxxx_session *session) {
 	yajl_gen g = begin_event(session, "track_info");
 
-	yajl_gen_string(g, (unsigned char *) "track_name", 10);
+	yajl_gen_string0(g, "track_name");
 	const char *track_name = sp_track_name(session->track);
-	yajl_gen_string(g, track_name, strlen(track_name));
+	yajl_gen_string0(g, track_name);
 
 	sp_album* album = sp_track_album(session->track);
-	yajl_gen_string(g, (unsigned char *) "album_name", 10);
+	yajl_gen_string0(g, "album_name");
 	const char *album_name = sp_album_name(album);
-	yajl_gen_string(g, album_name, strlen(album_name));
+	yajl_gen_string0(g, album_name);
 
 	sp_artist *artist = sp_track_artist(session->track, 0);
-	yajl_gen_string(g, (unsigned char *) "artist_name", 11);
+	yajl_gen_string0(g, "artist_name");
 	const char *artist_name = sp_artist_name(artist);
-	yajl_gen_string(g, artist_name, strlen(artist_name));
+	yajl_gen_string0(g, artist_name);
 
 	int duration = sp_track_duration(session->track);
-	yajl_gen_string(g, (unsigned char *) "track_duration", 14);
+	yajl_gen_string0(g, "track_duration");
 	yajl_gen_integer(g, duration);
 
 	return g;
@@ -385,7 +388,7 @@ void sxxxxxxx_monitor(client *c) {
 		position = get_position(c->session);
 	}
 	g = begin_event(c->session, "position");
-	yajl_gen_string(g, "position", 8);
+	yajl_gen_string0(g, "position");
 	yajl_gen_double(g, position);
 	finish_event_send(c, g);
 	if (c->session->state == PLAYING) {
@@ -428,8 +431,8 @@ static yajl_gen begin_event(sxxxxxxx_session *s, const char *event) {
 	yajl_gen g;
 	g = yajl_gen_alloc(&conf, NULL);
 	yajl_gen_map_open(g);
-	yajl_gen_string(g, "event", 5);
-	yajl_gen_string(g, event, strlen(event));
+	yajl_gen_string0(g, "event");
+	yajl_gen_string0(g, event);
 	return g;
 }
 
@@ -438,7 +441,7 @@ static void finish_event_notify_monitors(sxxxxxxx_session *s, yajl_gen g) {
 	const unsigned char *buf;
 	unsigned int len;
 	yajl_gen_get_buf(g, &buf, &len);
-	sxxxxxxx_notify_monitors(s, buf, len);
+	sxxxxxxx_notify_monitors(s, (char *) buf, len);
 	yajl_gen_free(g);
 }
 
@@ -447,7 +450,7 @@ static void finish_event_send(client *c, yajl_gen g) {
 	const unsigned char *buf;
 	unsigned int len;
 	yajl_gen_get_buf(g, &buf, &len);
-	ws_send(c->ws_client, buf, len);
+	ws_send(c->ws_client, (char *) buf, len);
 	yajl_gen_free(g);
 }
 
@@ -515,7 +518,7 @@ void sxxxxxxx_seek(sxxxxxxx_session *session, int offset) {
 	session->frames_since_seek = 0;
 	session->seek_position = offset;
 	yajl_gen g = begin_event(session, "position");
-	yajl_gen_string(g, "position", 8);
+	yajl_gen_string0(g, "position");
 	yajl_gen_integer(g, offset);
 	finish_event_notify_monitors(session, g);
 }
