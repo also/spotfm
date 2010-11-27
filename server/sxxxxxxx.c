@@ -103,7 +103,7 @@ void sx_log(sx_session *s, const char *message, ...) {
 
 void sxxxxxxx_run(sx_session *session, bool thread) {
 	pthread_t server_thread, main_thread, watchdog_thread;
-	pthread_create(&server_thread, NULL, server_loop, session);
+	pthread_create(&server_thread, NULL, sx_server_loop, session);
 	pthread_create(&watchdog_thread, NULL, watchdog_loop, session);
 	if (thread) {
 		pthread_create(&main_thread, NULL, main_loop, session);

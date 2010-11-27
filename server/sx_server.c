@@ -11,6 +11,8 @@
 
 #include "http_parser.h"
 
+#define CRLF "\r\n"
+
 #define CURRENT_HEADER (&c->headers[c->header_count - 1])
 
 void* run_client(void *sp);
@@ -36,13 +38,13 @@ static void send_client(sx_client *c, char *data) {
 	send(c->fd, data, strlen(data), 0);
 }
 
-void* server_loop(void *s) {
+void* sx_server_loop(void *s) {
 	sx_session *session = (sx_session *) s;
 	int sockfd, newsockfd, err;
 	socklen_t clilen;
 	struct sockaddr_in cli_addr, serv_addr;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		fprintf(stderr, "server: can't open stream socket\n");
+		sx_log(session, "server: can't open stream socket");
 		return NULL;
 	}
 	bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -55,7 +57,7 @@ void* server_loop(void *s) {
 
 	err = bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
 	if (err < 0) {
-		fprintf(stderr, "server: can't bind local address %d\n", err);
+		sx_log(session, "server: can't bind local address %d", err);
 		return NULL;
 	}
 
@@ -64,7 +66,7 @@ void* server_loop(void *s) {
 		clilen = sizeof(cli_addr);
 		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 		if (newsockfd < 0) {
-			fprintf(stderr, "server: accept error\n");
+			sx_log(session, "server: accept error");
 			close(sockfd);
 			return NULL;
 		}
@@ -146,7 +148,7 @@ int on_client_path(http_parser *parser, const char *p, size_t len) {
 	c->path = malloc(len);
 	c->path[len - 1] = 0;
 	memcpy(c->path, p + 1, len - 1);
-	fprintf(stderr, "client: \"%s\"\n", c->path);
+	sx_log(c->session, "client: \"%s\"", c->path);
 	return 0;
 }
 
@@ -158,7 +160,7 @@ int on_client_header_field(http_parser *parser, const char *p, size_t len) {
 		c->header_count++;
 		if (c->header_count > MAX_HEADERS) {
 			c->header_count = MAX_HEADERS;
-			fprintf(stderr, "too many headers\n");
+			sx_log(c->session, "too many headers");
 			return 1;
 		}
 	}
@@ -191,13 +193,22 @@ int on_client_headers_complete(http_parser *parser) {
 }
 
 static int handle_ws_message(ws_client *c, const char *at, size_t length) {
-	printf("got message. \"%s\" (%ld)\n", at, length);
+	sx_client *sxc = (sx_client *) c->data;
+	sx_log(sxc->session, "got message. \"%s\" (%ld)", at, length);
 	return 0;
 }
 
 static void handle_client_request(sx_client *c, char *body, size_t body_len) {
-	char *not_found_response = "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\n\r\nfalse\n";
-	char *ok_response = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\ntrue\n";
+	char *not_found_response =
+		"HTTP/1.0 404 Not Found" CRLF
+		"Access-Control-Allow-Origin: *" CRLF
+		CRLF
+		"false\n";
+	char *ok_response =
+		"HTTP/1.0 200 OK" CRLF
+		"Access-Control-Allow-Origin: *" CRLF
+		CRLF
+		"true\n";
 
 	bool ok = false;
 	size_t len = strlen(c->path);
@@ -215,11 +226,19 @@ static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 		ok = true;
 	}
 	else if (!strcmp("monitor", c->path)) {
-		char *key1 = get_header(c, "Sec-WebSocket-Key1");
-		char *key2 = get_header(c, "Sec-WebSocket-Key2");
-		char key3[9];
-		char *host = get_header(c, "Host");
-		char *origin = get_header(c, "Origin");
+		ws_client ws_client;
+		ws_client.data = c;
+		ws_client.fd = c->fd;
+		ws_client.callback = handle_ws_message;
+		
+		ws_client.host = get_header(c, "Host");
+		ws_client.origin = get_header(c, "Origin");
+		ws_client.path = "/monitor";
+
+		ws_client.key1 = get_header(c, "Sec-WebSocket-Key1");
+		ws_client.key2 = get_header(c, "Sec-WebSocket-Key2");
+		char key3[8];
+		ws_client.key3 = key3;
 
 		if (body_len >= 8) {
 			memcpy(key3, body, 8);
@@ -229,39 +248,11 @@ static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 			// TODO just pretending this will always work
 			recv(c->fd, key3 + body_len, 8 - body_len, 0);
 		}
-		key3[8] = '\0';
 
-		if (key1 && key2) {
-			ws_client ws_client;
-			ws_client.data = c;
-			ws_client.fd = c->fd;
-			ws_client.callback = handle_ws_message;
+		if (ws_client.key1 && ws_client.key2) {
 			c->ws_client = &ws_client;
 
-			// TODO broken
-//			char signature[16];
-//			ws_generate_signature(key1, key2, key3, signature);
-
-			uint32_t num1 = htonl(ws_parse_key(key1));
-			uint32_t num2 = htonl(ws_parse_key(key2));
-
-			MD5_CTX mdContext;
-			MD5Init(&mdContext);
-			MD5Update(&mdContext, &num1, 4);
-			MD5Update(&mdContext, &num2, 4);
-			MD5Update(&mdContext, &key3, 8);
-			MD5Final(&mdContext);
-
-			char *status = "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
-							"Upgrade: WebSocket\r\n"
-							"Connection: Upgrade\r\n"
-							"Sec-WebSocket-Origin: ";
-			send_client(c, status);
-			send_client(c, origin);
-			send_client(c, "\r\nSec-WebSocket-Location: ws://");
-			send_client(c, host);
-			send_client(c, "/monitor\r\n\r\n");
-			send(c->fd, mdContext.digest, 16, 0);
+			ws_send_handshake(&ws_client);
 
 			sx_monitor(c);
 			// TODO if body_len < 8
@@ -272,7 +263,7 @@ static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 	}
 
 	if (!ok) {
-		fprintf(stderr, "invalid url: %s\n", c->path);
+		sx_log(c->session, "invalid url: %s", c->path);
 		send_client(c, not_found_response);
 		close(c->fd);
 		c->fd = -1;

@@ -23,6 +23,6 @@ typedef struct client {
 	int header_count;
 } sx_client;
 
-void* server_loop(void *sp);
+void* sx_server_loop(void *sp);
 
 #endif

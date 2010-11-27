@@ -9,6 +9,8 @@
 
 #include "web_socket.h"
 
+#define CRLF "\r\n"
+
 #define WS_MESSAGE_START '\0'
 #define WS_MESSAGE_END '\xff'
 
@@ -18,6 +20,10 @@ void ws_send(ws_client *c, const char *data, size_t len) {
 	send(c->fd, data, len, 0);
 	b = '\xff';
 	send(c->fd, &b, 1, 0);
+}
+
+static void send_client(ws_client *c, char *data) {
+	send(c->fd, data, strlen(data), 0);
 }
 
 uint32_t ws_parse_key(const char *key) {
@@ -52,10 +58,27 @@ void ws_generate_signature(const char *key1, const char *key2, const char *key3,
 	MD5Init(&mdContext);
 	MD5Update(&mdContext, &num1, 4);
 	MD5Update(&mdContext, &num2, 4);
-	MD5Update(&mdContext, &key3, 8);
+	MD5Update(&mdContext, key3, 8);
 	MD5Final(&mdContext);
 
 	memcpy(buf, mdContext.digest, 16);
+}
+
+void ws_send_handshake(ws_client *c) {
+	char signature[16];
+	ws_generate_signature(c->key1, c->key2, c->key3, signature);
+	
+	char *status = "HTTP/1.1 101 WebSocket Protocol Handshake" CRLF
+	"Upgrade: WebSocket" CRLF
+	"Connection: Upgrade" CRLF
+	"Sec-WebSocket-Origin: ";
+	send_client(c, status);
+	send_client(c, c->origin);
+	send_client(c, CRLF "Sec-WebSocket-Location: ws://");
+	send_client(c, c->host);
+	send_client(c, c->path);
+	send_client(c, CRLF CRLF);
+	send(c->fd, signature, 16, 0);
 }
 
 static int ws_parse_input(ws_client *c, const char *input, size_t input_len) {

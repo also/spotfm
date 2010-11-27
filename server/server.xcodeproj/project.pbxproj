@@ -67,7 +67,7 @@
 		9458ECAC12845BE500E3B662 /* libyajl.1.0.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libyajl.1.0.11.dylib; path = "yajl/build/yajl-1.0.11/lib/libyajl.1.0.11.dylib"; sourceTree = "<group>"; };
 		9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SXXXXXXXApplication.h; sourceTree = "<group>"; };
 		9458ECE11284D3D700E3B662 /* SXXXXXXXApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SXXXXXXXApplication.m; sourceTree = "<group>"; };
-		9471D512126A04A40042C978 /* sx_server.h */ = {isa = PBXFileReference; fileEncoding = 4; path = sx_server.h; sourceTree = "<group>"; };
+		9471D512126A04A40042C978 /* sx_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sx_server.h; sourceTree = "<group>"; };
 		9471D513126A04A40042C978 /* sx_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sx_server.c; sourceTree = "<group>"; };
 		9471D536126A06C80042C978 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libspotify.framework; sourceTree = "<group>"; };
 		9471D53C126A07060042C978 /* sxxxxxxx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sxxxxxxx.h; sourceTree = "<group>"; };
@@ -88,7 +88,7 @@
 		9499EC40128619020002B79F /* keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keychain.h; sourceTree = "<group>"; };
 		9499EC41128619020002B79F /* keychain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = keychain.c; sourceTree = "<group>"; };
 		94CC837812A06F8200C14128 /* sx_spotify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sx_spotify.c; sourceTree = "<group>"; };
-		94CC837912A06F8200C14128 /* sx_spotify.h */ = {isa = PBXFileReference; fileEncoding = 4; path = sx_spotify.h; sourceTree = "<group>"; };
+		94CC837912A06F8200C14128 /* sx_spotify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sx_spotify.h; sourceTree = "<group>"; };
 		94CC837B12A07B2500C14128 /* sx_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sx_json.c; sourceTree = "<group>"; };
 		94CC837C12A07B2500C14128 /* sx_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sx_json.h; sourceTree = "<group>"; };
 		94E03231126A29B100A59FA5 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
