@@ -136,3 +136,44 @@ static void end_of_track(sp_session *sess) {
 	// TODO better to leak than to crash...
 	//sp_session_player_unload(sess);
 }
+
+void* sx_spotify_run(void *s) {
+	sx_session *session = (sx_session *) s;
+	int next_timeout = 0;
+	pthread_mutex_lock(&session->notify_mutex);
+
+	for (;;) {
+		if (next_timeout == 0) {
+			while(!session->notify_do) {
+				pthread_cond_wait(&session->notify_cond, &session->notify_mutex);
+			}
+		} else {
+			sx_waitfor(&session->notify_cond, &session->notify_mutex, next_timeout);
+		}
+
+		session->notify_do = 0;
+		pthread_mutex_unlock(&session->notify_mutex);
+
+		do {
+			sp_session_process_events(session->spotify_session, &next_timeout);
+		} while (next_timeout == 0);
+
+		pthread_mutex_lock(&session->notify_mutex);
+	}
+}
+
+sp_track *sx_spotify_track_for_url(sx_session *session, const char *url) {
+	sp_link *link = sp_link_create_from_string(url);
+	if (!link) {
+		return NULL;
+	}
+
+	sp_track *track = sp_link_as_track(link);
+	if (track) {
+		sp_track_add_ref(track);
+	}
+
+	sp_link_release(link);
+
+	return track;
+}

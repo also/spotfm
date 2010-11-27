@@ -68,10 +68,11 @@ void ws_send_handshake(ws_client *c) {
 	char signature[16];
 	ws_generate_signature(c->key1, c->key2, c->key3, signature);
 	
-	char *status = "HTTP/1.1 101 WebSocket Protocol Handshake" CRLF
-	"Upgrade: WebSocket" CRLF
-	"Connection: Upgrade" CRLF
-	"Sec-WebSocket-Origin: ";
+	char *status =
+		"HTTP/1.1 101 WebSocket Protocol Handshake" CRLF
+		"Upgrade: WebSocket" CRLF
+		"Connection: Upgrade" CRLF
+		"Sec-WebSocket-Origin: ";
 	send_client(c, status);
 	send_client(c, c->origin);
 	send_client(c, CRLF "Sec-WebSocket-Location: ws://");

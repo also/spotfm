@@ -7,10 +7,15 @@
 #include <arpa/inet.h>
 
 #include "sx_server.h"
-
+#include "sx_spotify.h"
 #include "sx_json.h"
 
-static void* main_loop(void *sess);
+struct monitor_list_item {
+	sx_client *c;
+	monitor_list_item *previous;
+	monitor_list_item *next;
+};
+
 static void* watchdog_loop(void *sess);
 
 static yajl_gen begin_event(sx_session *s, const char *event);
@@ -106,14 +111,14 @@ void sxxxxxxx_run(sx_session *session, bool thread) {
 	pthread_create(&server_thread, NULL, sx_server_loop, session);
 	pthread_create(&watchdog_thread, NULL, watchdog_loop, session);
 	if (thread) {
-		pthread_create(&main_thread, NULL, main_loop, session);
+		pthread_create(&main_thread, NULL, sx_spotify_run, session);
 	}
 	else {
-		main_loop(session);
+		sx_spotify_run(session);
 	}
 }
 
-static int waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, int ms_to_wait) {
+int sx_waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, int ms_to_wait) {
 	struct timespec ts;
 
 #if _POSIX_TIMERS > 0
@@ -129,31 +134,6 @@ static int waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mute
 	return 0;
 }
 
-static void* main_loop(void *s) {
-	sx_session *session = (sx_session *) s;
-	int next_timeout = 0;
-	pthread_mutex_lock(&session->notify_mutex);
-	
-	for (;;) {
-		if (next_timeout == 0) {
-			while(!session->notify_do) {
-				pthread_cond_wait(&session->notify_cond, &session->notify_mutex);
-			}
-		} else {
-			waitfor(&session->notify_cond, &session->notify_mutex, next_timeout);
-		}
-		
-		session->notify_do = 0;
-		pthread_mutex_unlock(&session->notify_mutex);
-		
-		do {
-			sp_session_process_events(session->spotify_session, &next_timeout);
-		} while (next_timeout == 0);
-		
-		pthread_mutex_lock(&session->notify_mutex);
-	}
-}
-
 static void* watchdog_loop(void *sess) {
 	sx_session *session = (sx_session *) sess;
 
@@ -163,10 +143,9 @@ static void* watchdog_loop(void *sess) {
 	int previous_frames_since_seek = 0;
 	int previous_seek_position = 0;
 
-	// TODO seems like a dumb way to sleep
 	pthread_mutex_lock(&lock);
 	for(;;) {
-		waitfor(&cond, &lock, 1000);
+		sx_waitfor(&cond, &lock, 1000);
 		int position;
 		audio_get_position(&session->player, &position);
 		pthread_mutex_unlock(&lock);
@@ -330,20 +309,13 @@ void sx_play(sx_session *session, char *id) {
 
 	char url[] = "spotify:track:XXXXXXXXXXXXXXXXXXXXXX";
 	memcpy(url + 14, id, 22);
-	sp_link *link = sp_link_create_from_string(url);
-	if (!link) {
-		return;
-	}
-	sp_track *track = sp_link_as_track(link);
+	sp_track *track = sx_spotify_track_for_url(session, url);
 	if (track) {
-		sp_track_add_ref(track);
 		session->next_track = track;
 		session->state = BUFFERING;
 		sx_send_event(session, "buffering");
 		sx_try_to_play(session);
 	}
-	
-	sp_link_release(link);
 }
 
 void sxxxxxxx_resume(sx_session *session) {
