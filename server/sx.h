@@ -21,6 +21,7 @@ typedef enum {
 } sx_state;
 
 typedef struct monitor_list_item monitor_list_item;
+typedef struct spotify_metadata_listener_list_item spotify_metadata_listener_list_item;
 
 typedef struct sx_session {
 	sxxxxxxx_session_config *config;
@@ -41,7 +42,11 @@ typedef struct sx_session {
 	/// Synchronization variable telling the main thread to process events
 	int notify_do;
 	monitor_list_item *monitors;
+	pthread_mutex_t spotify_metadata_listeners_lock;
+	spotify_metadata_listener_list_item *spotify_metadata_listeners;
 } sx_session;
+
+typedef void (sx_callback) (sx_session *session, void *data);
 
 void sx_log(sx_session *s, const char *message, ...);
 
@@ -51,7 +56,6 @@ void sx_monitor(sx_client *c);
 void sx_monitor_end(sx_client *c);
 void sx_play(sx_session *session, char *id);
 void sx_send_event(sx_session *s, char *event);
-void sx_try_to_play(sx_session *session);
 
 int sx_waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, int ms_to_wait);
 

@@ -6,6 +6,22 @@
 
 #include "appkey.c"
 
+struct spotify_metadata_listener_list_item {
+	sx_spotify_metadata_listener *listener;
+	void *data;
+	spotify_metadata_listener_list_item *previous;
+	spotify_metadata_listener_list_item *next;
+};
+
+typedef struct track_loader {
+	sx_callback *callback;
+	sp_track *track;
+	void *data;
+} track_loader;
+
+static spotify_metadata_listener_list_item *remove_metadata_listener_list_item(sx_session *session, spotify_metadata_listener_list_item *item);
+static bool track_loaded_metadata_callback(sx_session *session, void *data);
+
 static void logged_in(sp_session *sess, sp_error error);
 static void notify_main_thread(sp_session *sess);
 static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames);
@@ -45,6 +61,12 @@ void sx_spotify_init(sx_session *s) {
 
 	g_session = s;
 	spconfig.application_key_size = g_appkey_size;
+
+	// set up locks
+	pthread_mutex_init(&s->spotify_mutex, NULL);
+	pthread_mutex_init(&s->notify_mutex, NULL);
+	pthread_cond_init(&s->notify_cond, NULL);
+	pthread_mutex_init(&s->spotify_metadata_listeners_lock, NULL);
 
 	err = sp_session_init(&spconfig, &s->spotify_session);
 
@@ -113,7 +135,21 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 }
 
 static void metadata_updated(sp_session *sess) {
-	sx_try_to_play(g_session);
+	pthread_mutex_lock(&g_session->spotify_metadata_listeners_lock);
+
+	spotify_metadata_listener_list_item *item = g_session->spotify_metadata_listeners;
+
+	while (item) {
+		bool remove = item->listener(g_session, item->data);
+		if (remove) {
+			item = remove_metadata_listener_list_item(g_session, item);
+		}
+		else {
+			item = item->next;
+		}
+	}
+
+	pthread_mutex_unlock(&g_session->spotify_metadata_listeners_lock);
 }
 
 static void play_token_lost(sp_session *sess) {
@@ -163,17 +199,89 @@ void* sx_spotify_run(void *s) {
 }
 
 sp_track *sx_spotify_track_for_url(sx_session *session, const char *url) {
+	sp_track *track = NULL;
+
+	pthread_mutex_lock(&session->spotify_mutex);
 	sp_link *link = sp_link_create_from_string(url);
-	if (!link) {
-		return NULL;
+
+	if (link) {
+		track = sp_link_as_track(link);
+		if (track) {
+			sp_track_add_ref(track);
+		}
+
+		sp_link_release(link);
 	}
 
-	sp_track *track = sp_link_as_track(link);
-	if (track) {
-		sp_track_add_ref(track);
-	}
-
-	sp_link_release(link);
+	pthread_mutex_unlock(&session->spotify_mutex);
 
 	return track;
+}
+
+void sx_spotify_add_metadata_listener(sx_session *session, sx_spotify_metadata_listener *listener, void *data) {
+	spotify_metadata_listener_list_item *item = malloc(sizeof(spotify_metadata_listener_list_item));
+	item->listener = listener;
+	item->data = data;
+	item->previous = NULL;
+	item->next = NULL;
+
+	pthread_mutex_lock(&session->spotify_metadata_listeners_lock);
+
+	if (!session->spotify_metadata_listeners) {
+		session->spotify_metadata_listeners = item;
+	}
+	else {
+		item->next = session->spotify_metadata_listeners;
+		session->spotify_metadata_listeners->previous = item;
+		session->spotify_metadata_listeners = item;
+	}
+
+	pthread_mutex_unlock(&session->spotify_metadata_listeners_lock);
+}
+
+static spotify_metadata_listener_list_item *remove_metadata_listener_list_item(sx_session *session, spotify_metadata_listener_list_item *item) {
+	spotify_metadata_listener_list_item *next = item->next;
+	if (item->previous) {
+		item->previous->next = item->next;
+	}
+	else {
+		g_session->spotify_metadata_listeners = item->next;
+	}
+	if (next) {
+		next->previous = item->previous;
+	}
+	free(item);
+	return next;
+}
+
+void sx_spotify_load_track(sx_session *session, sp_track *track, sx_callback *callback, void *data) {
+	pthread_mutex_lock(&session->spotify_mutex);
+	bool is_loaded = sp_track_is_loaded(track);
+	pthread_mutex_unlock(&session->spotify_mutex);
+
+	if (is_loaded) {
+		callback(session, data);
+	}
+	else {
+		track_loader *loader = malloc(sizeof(track_loader));
+		loader->callback = callback;
+		loader->track = track;
+		loader->data = data;
+		sx_spotify_add_metadata_listener(session, track_loaded_metadata_callback, loader);
+	}
+}
+
+static bool track_loaded_metadata_callback(sx_session *session, void *data) {
+	track_loader *loader = (track_loader *) data;
+
+	pthread_mutex_lock(&session->spotify_mutex);
+	bool is_loaded = sp_track_is_loaded(loader->track);
+	pthread_mutex_unlock(&session->spotify_mutex);
+
+	if (is_loaded) {
+		loader->callback(session, loader->data);
+		free(loader);
+	}
+
+	return is_loaded;
 }
