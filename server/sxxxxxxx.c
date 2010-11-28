@@ -143,7 +143,6 @@ static void* watchdog_loop(void *sess) {
 		sx_waitfor(&cond, &lock, 1000);
 		int position;
 		audio_get_position(&session->player, &position);
-		pthread_mutex_unlock(&lock);
 		if (previous_frames_since_seek != session->frames_since_seek || previous_seek_position != session->seek_position) {
 			double position = get_position(session);
 			yajl_gen g = begin_event(session, "position");
