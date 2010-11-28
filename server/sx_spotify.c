@@ -173,6 +173,7 @@ static void end_of_track(sp_session *sess) {
 }
 
 void* sx_spotify_run(void *s) {
+	pthread_setname_np("sx_spotify main");
 	sx_session *session = (sx_session *) s;
 	int next_timeout = 0;
 	pthread_mutex_lock(&session->notify_mutex);

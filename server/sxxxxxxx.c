@@ -128,6 +128,7 @@ int sx_waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, i
 }
 
 static void* watchdog_loop(void *sess) {
+	pthread_setname_np("sx_watchdog main");
 	sx_session *session = (sx_session *) sess;
 
 	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;

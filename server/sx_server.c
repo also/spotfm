@@ -39,6 +39,7 @@ static void send_client(sx_client *c, char *data) {
 }
 
 void* sx_server_loop(void *s) {
+	pthread_setname_np("sx_server main");
 	sx_session *session = (sx_session *) s;
 	int sockfd, newsockfd, err;
 	socklen_t clilen;
@@ -85,6 +86,7 @@ void* sx_server_loop(void *s) {
 }
 
 void* run_client(void *x) {
+	pthread_setname_np("sx_server client");
 	sx_client *c = (sx_client *) x;
 
 	http_parser *parser = malloc(sizeof(http_parser));
