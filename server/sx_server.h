@@ -12,10 +12,11 @@ typedef struct header {
 	size_t value_len;
 } header;
 
-typedef struct client {
+typedef struct sx_client {
 	struct sx_session *session;
 	void *data;
 	int fd;
+	bool async;
 	ws_client *ws_client;
 	bool headers_complete;
 	char *path;
@@ -24,5 +25,7 @@ typedef struct client {
 } sx_client;
 
 void* sx_server_loop(void *sp);
+
+void sx_server_free_client(sx_client *c);
 
 #endif

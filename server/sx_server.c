@@ -1,5 +1,6 @@
 #include "sx.h"
 #include "sx_server.h"
+#include "sx_spotify.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+
 #include "md5.h"
 
 #include "http_parser.h"
@@ -121,11 +123,21 @@ void* run_client(void *x) {
 			break;
 		}
 	} while (recved > 0);
+	
+	free(parser);
 
+	if (!c->async) {
+		sx_server_free_client(c);
+	}
+
+	return NULL;
+}
+
+void sx_server_free_client(sx_client *c) {
 	if (c->fd > 0) {
 		close(c->fd);
 	}
-
+	
 	if (c->path) {
 		free(c->path);
 	}
@@ -133,15 +145,12 @@ void* run_client(void *x) {
 		if (c->headers[i].name) {
 			free(c->headers[i].name);
 		}
-
+		
 		if (c->headers[i].value) {
 			free(c->headers[i].value);
 		}
 	}
 	free(c);
-	free(parser);
-
-	return NULL;
 }
 
 int on_client_path(http_parser *parser, const char *p, size_t len) {
@@ -227,6 +236,34 @@ static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 		sxxxxxxx_stop(c->session);
 		ok = true;
 	}
+	else if (!strcmp("current_album_cover", c->path)) {
+		sx_spotify_image *image = sx_spotify_get_current_album_cover(c->session);
+		if (image) {
+			send_client(c, "HTTP/1.0 200 OK" CRLF);
+			send_client(c, "Content-Type: image/jpeg" CRLF CRLF);
+			send(c->fd, image->data, image->size, 0);
+			sx_spotify_free_image(c->session, image);
+			return;
+		}
+	}
+	else if (strstr(c->path, "track_album_cover/")) {
+		sp_track *track = sx_spotify_track_for_url(c->session, c->path + 18);
+		if (track) {
+			sp_album *album = sx_spotify_load_album_for_track_sync(c->session, track, 1000);
+			if (album) {
+				sx_spotify_image *image = sx_spotify_get_album_cover(c->session, album);
+				if (image) {
+					send_client(c, "HTTP/1.0 200 OK" CRLF);
+					send_client(c, "Content-Type: image/jpeg" CRLF CRLF);
+					send(c->fd, image->data, image->size, 0);
+					sx_spotify_free_image(c->session, image);
+					// FIXME lock
+					sp_track_release(track);
+					return;
+				}
+			}
+		}
+	}
 	else if (!strcmp("monitor", c->path)) {
 		ws_client ws_client;
 		ws_client.data = c;
@@ -265,7 +302,7 @@ static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 	}
 
 	if (!ok) {
-		sx_log(c->session, "invalid url: %s", c->path);
+		sx_log(c->session, "invalid url: %s (%d)", c->path, len);
 		send_client(c, not_found_response);
 		close(c->fd);
 		c->fd = -1;

@@ -53,18 +53,24 @@ var spotfm = {
     },
 
     connect: function () {
+        if (spotfm.ws) {
+            return;
+        }
         console.log('trying to connect');
         var ws = new WebSocket('ws://localhost:9999/monitor');
+        spotfm.ws = ws;
         ws.onopen = function () {
             console.log('open');
         };
 
         ws.onerror = function () {
+            spotfm.ws = null;
             console.log('spotfm connection error');
             window.setTimeout(spotfm.connect, 1000);
         };
 
         ws.onclose = function () {
+            spotfm.ws = null;
             console.log('spotfm connection closed');
             window.setTimeout(spotfm.connect, 1000);
         };

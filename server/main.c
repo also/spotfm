@@ -11,7 +11,7 @@ int main() {
 	}
 	
     sxxxxxxx_session *session;
-	sxxxxxxx_init(&session, username, password);
+	//sxxxxxxx_init(&session, username, password);
 	sxxxxxxx_run(session, FALSE);
 	return 0;
 }

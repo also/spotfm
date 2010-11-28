@@ -39,7 +39,8 @@ static void next_track_ready(sx_session *session, void *data) {
 	session->seek_position = 0;
 	session->frames_since_seek = 0;
 
-	pthread_mutex_lock(&session->spotify_mutex);
+	// TODO probably unnecessary; called from main thread
+	sxp_lock(session);
 
 	if (session->track && session->track != next_track) {
 		sp_track_release(session->track);
@@ -49,13 +50,13 @@ static void next_track_ready(sx_session *session, void *data) {
 
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
-		pthread_mutex_unlock(&session->spotify_mutex);
+		sxp_unlock(session);
 		sx_log(session, "failed loading player: %s", sp_error_message(error));
 		sx_send_event(session, "playback_failed");
 	}
 	else {
 		sp_session_player_play(session->spotify_session, true);
-		pthread_mutex_unlock(&session->spotify_mutex);
+		sxp_unlock(session);
 
 		yajl_gen g = begin_track_info_event(session);
 		finish_event_notify_monitors(session, g);
@@ -174,14 +175,14 @@ static void handle_player_stop(audio_player_t *player) {
 }
 
 static yajl_gen begin_track_info_event(sx_session *session) {
-	pthread_mutex_lock(&session->spotify_mutex);
+	sxp_lock(session);
 	const char *track_name = sp_track_name(session->track);
 	sp_album* album = sp_track_album(session->track);
 	const char *album_name = sp_album_name(album);
 	sp_artist *artist = sp_track_artist(session->track, 0);
 	const char *artist_name = sp_artist_name(artist);
 	int duration = sp_track_duration(session->track);
-	pthread_mutex_unlock(&session->spotify_mutex);
+	sxp_unlock(session);
 
 	yajl_gen g = begin_event(session, "track_info");
 
@@ -302,9 +303,9 @@ void sx_send_event(sx_session *s, char *event) {
 }
 
 void sx_play(sx_session *session, char *id) {
-	pthread_mutex_lock(&session->spotify_mutex);
+	sxp_lock(session);
 	sp_session_player_play(session->spotify_session, false);
-	pthread_mutex_unlock(&session->spotify_mutex);
+	sxp_unlock(session);
 
 	// TODO what is necessary?
 	audio_fifo_flush(&session->player.af);
@@ -322,9 +323,9 @@ void sx_play(sx_session *session, char *id) {
 
 void sxxxxxxx_resume(sx_session *session) {
 	if (session->track) {
-		pthread_mutex_lock(&session->spotify_mutex);
+		sxp_lock(session);
 		sp_session_player_play(session->spotify_session, true);
-		pthread_mutex_unlock(&session->spotify_mutex);
+		sxp_unlock(session);
 	}
 	else {
 		sx_send_event(session, "play");
@@ -334,9 +335,9 @@ void sxxxxxxx_resume(sx_session *session) {
 void sxxxxxxx_stop(sx_session *session) {
 	// TODO what is necessary?
 	audio_pause(&session->player);
-	pthread_mutex_lock(&session->spotify_mutex);
+	sxp_lock(session);
 	sp_session_player_play(session->spotify_session, false);
-	pthread_mutex_unlock(&session->spotify_mutex);
+	sxp_unlock(session);
 	session->state = PAUSED;
 }
 
@@ -353,9 +354,9 @@ void sxxxxxxx_seek(sx_session *session, int offset) {
 	// TODO what is necessary?
 	audio_fifo_flush(&session->player.af);
 	audio_reset(&session->player);
-	pthread_mutex_lock(&session->spotify_mutex);
+	sxp_lock(session);
 	sp_session_player_seek(session->spotify_session, offset);
-	pthread_mutex_unlock(&session->spotify_mutex);
+	sxp_unlock(session);
 	session->frames_since_seek = 0;
 	session->seek_position = offset;
 	yajl_gen g = begin_event(session, "position");
