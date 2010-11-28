@@ -97,6 +97,7 @@ void sx_log(sx_session *s, const char *message, ...) {
 	vasprintf(&formatted_message, message, argptr);
 	va_end(argptr);
 	s->config->log(NULL, formatted_message);
+	free(formatted_message);
 }
 
 void sxxxxxxx_run(sx_session *session, bool thread) {
