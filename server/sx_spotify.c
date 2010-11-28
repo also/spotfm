@@ -6,6 +6,8 @@
 
 #include "appkey.c"
 
+#define SX_S(sp_session) ((sx_session *) sp_session_userdata(sp_session))
+
 struct spotify_metadata_listener_list_item {
 	sx_spotify_metadata_listener *listener;
 	void *data;
@@ -31,8 +33,6 @@ static void log_message(sp_session *session, const char *data);
 static void message_to_user(sp_session *session, const char *data);
 static void end_of_track(sp_session *sess);
 
-// we have to keep a global because spotify doesn't give us a way to reference this from its callbacks
-static sx_session *g_session;
 
 static sp_session_callbacks session_callbacks = {
 	.logged_in = &logged_in,
@@ -45,58 +45,55 @@ static sp_session_callbacks session_callbacks = {
 	.message_to_user = &message_to_user,
 };
 
-static sp_session_config spconfig = {
-	.api_version = SPOTIFY_API_VERSION,
-	.cache_location = "tmp",
-	.settings_location = "tmp",
-	.application_key = g_appkey,
-	.application_key_size = 0, // Set in main()
-	.user_agent = "spotfm",
-	.callbacks = &session_callbacks,
-	NULL,
-};
-
-void sx_spotify_init(sx_session *s) {
+void sx_spotify_init(sx_session *session) {
 	sp_error err;
 
-	g_session = s;
-	spconfig.application_key_size = g_appkey_size;
-
 	// set up locks
-	pthread_mutex_init(&s->spotify_mutex, NULL);
-	pthread_mutex_init(&s->notify_mutex, NULL);
-	pthread_cond_init(&s->notify_cond, NULL);
-	pthread_mutex_init(&s->spotify_metadata_listeners_lock, NULL);
+	pthread_mutex_init(&session->spotify_mutex, NULL);
+	pthread_mutex_init(&session->notify_mutex, NULL);
+	pthread_cond_init(&session->notify_cond, NULL);
+	pthread_mutex_init(&session->spotify_metadata_listeners_lock, NULL);
 
-	err = sp_session_init(&spconfig, &s->spotify_session);
+	session->sp_session_config.api_version = SPOTIFY_API_VERSION;
+	session->sp_session_config.cache_location = "tmp";
+	session->sp_session_config.settings_location = "tmp";
+	session->sp_session_config.application_key = g_appkey;
+	session->sp_session_config.application_key_size = g_appkey_size;
+	session->sp_session_config.user_agent = "sx";
+	session->sp_session_config.userdata = session;
+	session->sp_session_config.callbacks = &session_callbacks;
+	
+	err = sp_session_create(&session->sp_session_config, &session->spotify_session);
 
 	if (SP_ERROR_OK != err) {
-		sx_log(s, "Unable to create session: %s", sp_error_message(err));
+		sx_log(session, "Unable to create session: %s", sp_error_message(err));
 		exit(1);
 	}
 }
 
 static void logged_in(sp_session *sess, sp_error error) {
 	if (SP_ERROR_OK != error) {
-		sx_log(g_session, "Login failed: %s\n", sp_error_message(error));
+		sx_log(SX_S(sess), "Login failed: %s\n", sp_error_message(error));
 		exit(2);
 	}
 }
 
 static void notify_main_thread(sp_session *sess) {
-	pthread_mutex_lock(&g_session->notify_mutex);
-	g_session->notify_do = 1;
-	pthread_cond_signal(&g_session->notify_cond);
-	pthread_mutex_unlock(&g_session->notify_mutex);
+	sx_session *session = SX_S(sess);
+	pthread_mutex_lock(&session->notify_mutex);
+	session->notify_do = 1;
+	pthread_cond_signal(&session->notify_cond);
+	pthread_mutex_unlock(&session->notify_mutex);
 }
 
 static int music_delivery(sp_session *sess, const sp_audioformat *format, const void *frames, int num_frames) {
-	audio_fifo_t *af = &g_session->player.af;
-	if (g_session->state != PLAYING) {
-		g_session->state = PLAYING;
-		audio_start(&g_session->player);
-		sx_send_event(g_session, "start_of_track");
-		sx_send_event(g_session, "playing");
+	sx_session *session = SX_S(sess);
+	audio_fifo_t *af = &session->player.af;
+	if (session->state != PLAYING) {
+		session->state = PLAYING;
+		audio_start(&session->player);
+		sx_send_event(session, "start_of_track");
+		sx_send_event(session, "playing");
 	}
 
 	audio_fifo_data_t *afd;
@@ -124,51 +121,53 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format, const 
 	afd->rate = format->sample_rate;
 	afd->channels = format->channels;
 
-	audio_enqueue(&g_session->player, afd);
+	audio_enqueue(&session->player, afd);
 
 	pthread_cond_signal(&af->cond);
 	pthread_mutex_unlock(&af->mutex);
 
-	g_session->frames_since_seek += num_frames;
+	session->frames_since_seek += num_frames;
 
 	return num_frames;
 }
 
 static void metadata_updated(sp_session *sess) {
-	pthread_mutex_lock(&g_session->spotify_metadata_listeners_lock);
+	sx_session *session = SX_S(sess);
+	pthread_mutex_lock(&session->spotify_metadata_listeners_lock);
 
-	spotify_metadata_listener_list_item *item = g_session->spotify_metadata_listeners;
+	spotify_metadata_listener_list_item *item = session->spotify_metadata_listeners;
 
 	while (item) {
-		bool remove = item->listener(g_session, item->data);
+		bool remove = item->listener(session, item->data);
 		if (remove) {
-			item = remove_metadata_listener_list_item(g_session, item);
+			item = remove_metadata_listener_list_item(session, item);
 		}
 		else {
 			item = item->next;
 		}
 	}
 
-	pthread_mutex_unlock(&g_session->spotify_metadata_listeners_lock);
+	pthread_mutex_unlock(&session->spotify_metadata_listeners_lock);
 }
 
 static void play_token_lost(sp_session *sess) {
 	// we can lose the play token even if there is no track
-	audio_finish(&g_session->player);
+	audio_finish(&SX_S(sess)->player);
 }
 
-static void log_message(sp_session *session, const char *data) {
-	sx_log(g_session, "libspotify log: %s", data);
+static void log_message(sp_session *sess, const char *data) {
+	sx_log(SX_S(sess), "libspotify log: %s", data);
 }
 
-static void message_to_user(sp_session *session, const char *data) {
-	sx_log(g_session, "libspotify message_to_user: %s", data);
+static void message_to_user(sp_session *sess, const char *data) {
+	sx_log(SX_S(sess), "libspotify message_to_user: %s", data);
 }
 
 static void end_of_track(sp_session *sess) {
-	g_session->track_ending = true;
-	audio_finish(&g_session->player);
-	g_session->track = NULL;
+	sx_session *session = SX_S(sess);
+	session->track_ending = true;
+	audio_finish(&session->player);
+	session->track = NULL;
 	// TODO better to leak than to crash...
 	//sp_session_player_unload(sess);
 }
@@ -245,7 +244,7 @@ static spotify_metadata_listener_list_item *remove_metadata_listener_list_item(s
 		item->previous->next = item->next;
 	}
 	else {
-		g_session->spotify_metadata_listeners = item->next;
+		session->spotify_metadata_listeners = item->next;
 	}
 	if (next) {
 		next->previous = item->previous;
