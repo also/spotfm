@@ -32,6 +32,8 @@ static void next_track_ready(sx_session *session, void *data);
 static void next_track_ready(sx_session *session, void *data) {
 	sp_error error;
 
+	sp_track *next_track = (sp_track *) data;
+
 	audio_fifo_flush(&session->player.af);
 	audio_reset(&session->player);
 	session->seek_position = 0;
@@ -39,12 +41,11 @@ static void next_track_ready(sx_session *session, void *data) {
 
 	pthread_mutex_lock(&session->spotify_mutex);
 
-	if (session->track && session->track != session->next_track) {
+	if (session->track && session->track != next_track) {
 		sp_track_release(session->track);
 	}
 
-	session->track = session->next_track;
-	session->next_track = NULL;
+	session->track = next_track;
 
 	error = sp_session_player_load(session->spotify_session, session->track);
 	if (SP_ERROR_OK != error) {
@@ -312,10 +313,9 @@ void sx_play(sx_session *session, char *id) {
 	memcpy(url + 14, id, 22);
 	sp_track *track = sx_spotify_track_for_url(session, url);
 	if (track) {
-		session->next_track = track;
 		session->state = BUFFERING;
 		sx_send_event(session, "buffering");
-		sx_spotify_load_track(session, track, &next_track_ready, NULL);
+		sx_spotify_load_track(session, track, &next_track_ready, track);
 	}
 }
 

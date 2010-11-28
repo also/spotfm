@@ -29,7 +29,6 @@ typedef struct sx_session {
 	bool track_ending;
 	sp_session *spotify_session;
 	sp_track *track;
-	sp_track *next_track;
 	int seek_position;
 	int frames_since_seek;
 	audio_player_t player;
