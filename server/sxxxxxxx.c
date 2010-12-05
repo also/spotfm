@@ -137,8 +137,10 @@ static void* watchdog_loop(void *sess) {
 	pthread_setname_np("sx_watchdog main");
 	sx_session *session = (sx_session *) sess;
 
-	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-	pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_t lock;
+	pthread_mutex_init(&lock, NULL);
+	pthread_cond_t cond;
+	pthread_cond_init(&cond, NULL);
 
 	int previous_frames_since_seek = 0;
 	int previous_seek_position = 0;
