@@ -54,13 +54,14 @@ static sp_session_callbacks session_callbacks = {
 
 void sxp_lock(sx_session *session) {
 	if (!pthread_equal(pthread_self(), session->spotify_thread)) {
-		pthread_mutex_lock(&session->notify_mutex);
+		pthread_mutex_lock(&session->spotify_mutex);
 	}
+
 }
 
 void sxp_unlock(sx_session *session) {
 	if (!pthread_equal(pthread_self(), session->spotify_thread)) {
-		pthread_mutex_unlock(&session->notify_mutex);
+		pthread_mutex_unlock(&session->spotify_mutex);
 	}
 }
 
