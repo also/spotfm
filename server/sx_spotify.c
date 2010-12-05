@@ -427,9 +427,9 @@ bool album_loaded_sync_metadata_callback(sx_session *session, void *data) {
 	bool is_loaded = sp_album_is_loaded(album);
 	if (is_loaded) {
 		pthread_cond_signal(&loader->cond);
+		sxp_release_loader(loader);
 	}
 	pthread_mutex_unlock(&session->spotify_mutex);
-	sxp_release_loader(loader);
 	return is_loaded;
 }
 
@@ -463,8 +463,8 @@ bool track_loaded_sync_metadata_callback(sx_session *session, void *data) {
 	bool is_loaded = sp_track_is_loaded(track);
 	if (is_loaded) {
 		pthread_cond_signal(&loader->cond);
+		sxp_release_loader(loader);
 	}
-	sxp_release_loader(loader);
 	return is_loaded;
 }
 
