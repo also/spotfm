@@ -125,6 +125,10 @@ int sx_waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, i
 #endif
 	ts.tv_sec += ms_to_wait / 1000;
 	ts.tv_nsec += (ms_to_wait % 1000) * 1000000;
+	if (ts.tv_nsec >= 1000000000L) {
+		ts.tv_sec++;
+		ts.tv_nsec = ts.tv_nsec - 1000000000L;
+	}
 	pthread_cond_timedwait(cond, mutex, &ts);
 	return 0;
 }
