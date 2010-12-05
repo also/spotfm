@@ -9,6 +9,7 @@
 #include <libspotify/api.h>
 
 #include "sx_server.h"
+#include "sx_json.h"
 
 #include "audio.h"
 
@@ -59,5 +60,7 @@ void sx_play(sx_session *session, char *id);
 void sx_send_event(sx_session *s, char *event);
 
 int sx_waitfor(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, int ms_to_wait);
+
+void sx_add_track_info(sx_session *session, yajl_gen g, sp_track *track);
 
 #endif

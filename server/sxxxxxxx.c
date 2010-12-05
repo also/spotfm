@@ -177,20 +177,18 @@ static void handle_player_stop(audio_player_t *player) {
 		sx_send_event(session, "end_of_track");
 	}
 	sx_send_event(session, "stopped");
-	sx_log(session, "handle_player_stop");
 }
 
-static yajl_gen begin_track_info_event(sx_session *session) {
+void sx_add_track_info(sx_session *session, yajl_gen g, sp_track *track) {
 	sxp_lock(session);
-	const char *track_name = sp_track_name(session->track);
-	sp_album* album = sp_track_album(session->track);
+	const char *track_name = sp_track_name(track);
+	sp_album* album = sp_track_album(track);
+	// FIXME not necessarily loaded yet
 	const char *album_name = sp_album_name(album);
-	sp_artist *artist = sp_track_artist(session->track, 0);
+	sp_artist *artist = sp_track_artist(track, 0);
 	const char *artist_name = sp_artist_name(artist);
-	int duration = sp_track_duration(session->track);
+	int duration = sp_track_duration(track);
 	sxp_unlock(session);
-
-	yajl_gen g = begin_event(session, "track_info");
 
 	yajl_gen_string0(g, "track_name");
 	yajl_gen_string0(g, track_name);
@@ -203,6 +201,12 @@ static yajl_gen begin_track_info_event(sx_session *session) {
 
 	yajl_gen_string0(g, "track_duration");
 	yajl_gen_integer(g, duration);
+}
+
+static yajl_gen begin_track_info_event(sx_session *session) {
+	yajl_gen g = begin_event(session, "track_info");
+
+	sx_add_track_info(session, g, session->track);
 
 	return g;
 }
