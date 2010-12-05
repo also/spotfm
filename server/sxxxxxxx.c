@@ -79,7 +79,7 @@ void sxxxxxxx_init(sx_session **session, sxxxxxxx_session_config * config, const
 	s->state = STOPPED;
 	sx_send_event(s, "stopped");
 
-	sx_spotify_init(s);
+	sxp_init(s);
 	
 	sp_session_login(s->spotify_session, username, password);
 	
@@ -106,10 +106,10 @@ void sxxxxxxx_run(sx_session *session, bool thread) {
 	pthread_create(&server_thread, NULL, sx_server_loop, session);
 	pthread_create(&watchdog_thread, NULL, watchdog_loop, session);
 	if (thread) {
-		pthread_create(&main_thread, NULL, sx_spotify_run, session);
+		pthread_create(&main_thread, NULL, sxp_run, session);
 	}
 	else {
-		sx_spotify_run(session);
+		sxp_run(session);
 	}
 }
 
@@ -323,11 +323,11 @@ void sx_play(sx_session *session, char *id) {
 
 	char url[] = "spotify:track:XXXXXXXXXXXXXXXXXXXXXX";
 	memcpy(url + 14, id, 22);
-	sp_track *track = sx_spotify_track_for_url(session, url);
+	sp_track *track = sxp_track_for_url(session, url);
 	if (track) {
 		session->state = BUFFERING;
 		sx_send_event(session, "buffering");
-		sx_spotify_load_track(session, track, &next_track_ready, track);
+		sxp_load_track(session, track, &next_track_ready, track);
 	}
 }
 

@@ -9,7 +9,7 @@
 #define SX_S(sp_session) ((sx_session *) sp_session_userdata(sp_session))
 
 struct spotify_metadata_listener_list_item {
-	sx_spotify_metadata_listener *listener;
+	sxp_metadata_listener *listener;
 	void *data;
 	spotify_metadata_listener_list_item *previous;
 	spotify_metadata_listener_list_item *next;
@@ -66,7 +66,7 @@ void sxp_unlock(sx_session *session) {
 	}
 }
 
-void sx_spotify_init(sx_session *session) {
+void sxp_init(sx_session *session) {
 	sp_error err;
 
 	// set up locks
@@ -193,8 +193,8 @@ static void end_of_track(sp_session *sess) {
 	//sp_session_player_unload(sess);
 }
 
-void* sx_spotify_run(void *s) {
-	pthread_setname_np("sx_spotify main");
+void* sxp_run(void *s) {
+	pthread_setname_np("sxp main");
 	sx_session *session = (sx_session *) s;
 
 	session->spotify_thread = pthread_self();
@@ -224,7 +224,7 @@ void* sx_spotify_run(void *s) {
 	}
 }
 
-sp_track *sx_spotify_track_for_url(sx_session *session, const char *url) {
+sp_track *sxp_track_for_url(sx_session *session, const char *url) {
 	sp_track *track = NULL;
 
 	pthread_mutex_lock(&session->spotify_mutex);
@@ -264,7 +264,7 @@ sp_album *sx_sp_album_for_url(sx_session *session, const char *url) {
 	return album;
 }
 
-void sx_spotify_add_metadata_listener(sx_session *session, sx_spotify_metadata_listener *listener, void *data) {
+void sxp_add_metadata_listener(sx_session *session, sxp_metadata_listener *listener, void *data) {
 	spotify_metadata_listener_list_item *item = malloc(sizeof(spotify_metadata_listener_list_item));
 	item->listener = listener;
 	item->data = data;
@@ -320,7 +320,7 @@ static void sxp_release_loader(sxp_loader *loader) {
 	}
 }
 
-void sx_spotify_load_track(sx_session *session, sp_track *track, sx_callback *callback, void *data) {
+void sxp_load_track(sx_session *session, sp_track *track, sx_callback *callback, void *data) {
 	pthread_mutex_lock(&session->spotify_mutex);
 	bool is_loaded = sp_track_is_loaded(track);
 	pthread_mutex_unlock(&session->spotify_mutex);
@@ -333,7 +333,7 @@ void sx_spotify_load_track(sx_session *session, sp_track *track, sx_callback *ca
 		loader->callback = callback;
 		loader->sp_obj = track;
 		loader->data = data;
-		sx_spotify_add_metadata_listener(session, track_loaded_metadata_callback, loader);
+		sxp_add_metadata_listener(session, track_loaded_metadata_callback, loader);
 	}
 }
 
@@ -358,9 +358,9 @@ static void image_loaded(sp_image *image, void *userdata) {
 	sxp_release_loader(loader);
 }
 
-sx_spotify_image *sx_spotify_get_album_cover(sx_session *session, sp_album *album) {
+sxp_image *sxp_get_album_cover(sx_session *session, sp_album *album) {
 	sp_error err;
-	sx_spotify_image *result = malloc(sizeof(sx_spotify_image));
+	sxp_image *result = malloc(sizeof(sxp_image));
 
 	pthread_mutex_lock(&session->spotify_mutex);
 
@@ -403,14 +403,14 @@ sx_spotify_image *sx_spotify_get_album_cover(sx_session *session, sp_album *albu
 	return result;
 }
 
-void sx_spotify_free_image(sx_session *session, sx_spotify_image *image) {
+void sxp_free_image(sx_session *session, sxp_image *image) {
 	pthread_mutex_lock(&session->spotify_mutex);
 	sp_image_release(image->sp_image);
 	free(image);
 	pthread_mutex_unlock(&session->spotify_mutex);
 }
 
-sx_spotify_image *sx_spotify_get_current_album_cover(sx_session *session) {
+sxp_image *sxp_get_current_album_cover(sx_session *session) {
 	if (!session->track) {
 		return NULL;
 	}
@@ -420,8 +420,8 @@ sx_spotify_image *sx_spotify_get_current_album_cover(sx_session *session) {
 		// TODO handle metadata not loaded
 		return NULL;
 	}
-	sx_spotify_load_album_sync(session, album, -1);
-	return sx_spotify_get_album_cover(session, album);
+	sxp_load_album_sync(session, album, -1);
+	return sxp_get_album_cover(session, album);
 }
 
 bool album_loaded_sync_metadata_callback(sx_session *session, void *data) {
@@ -438,7 +438,7 @@ bool album_loaded_sync_metadata_callback(sx_session *session, void *data) {
 	return is_loaded;
 }
 
-bool sx_spotify_load_album_sync(sx_session *session, sp_album *album, int timeout) {
+bool sxp_load_album_sync(sx_session *session, sp_album *album, int timeout) {
 	pthread_mutex_lock(&session->spotify_mutex);
 
 	bool is_loaded = sp_album_is_loaded(album);
@@ -446,7 +446,7 @@ bool sx_spotify_load_album_sync(sx_session *session, sp_album *album, int timeou
 		sxp_loader *loader = sxp_create_loader();
 		loader->sp_obj = album;
 		pthread_cond_init(&loader->cond, NULL);
-		sx_spotify_add_metadata_listener(session, album_loaded_sync_metadata_callback, loader);
+		sxp_add_metadata_listener(session, album_loaded_sync_metadata_callback, loader);
 		do {
 			if (timeout > 0) {
 				sx_waitfor(&loader->cond, &session->spotify_mutex, timeout);
@@ -473,7 +473,7 @@ bool track_loaded_sync_metadata_callback(sx_session *session, void *data) {
 	return is_loaded;
 }
 
-bool sx_spotify_load_track_sync(sx_session *session, sp_track *track, int timeout) {
+bool sxp_load_track_sync(sx_session *session, sp_track *track, int timeout) {
 	pthread_mutex_lock(&session->spotify_mutex);
 
 	bool is_loaded = sp_track_is_loaded(track);
@@ -481,7 +481,7 @@ bool sx_spotify_load_track_sync(sx_session *session, sp_track *track, int timeou
 		sxp_loader *loader = sxp_create_loader();
 		loader->sp_obj = track;
 		pthread_cond_init(&loader->cond, NULL);
-		sx_spotify_add_metadata_listener(session, track_loaded_sync_metadata_callback, loader);
+		sxp_add_metadata_listener(session, track_loaded_sync_metadata_callback, loader);
 		do {
 			if (timeout > 0) {
 				sx_waitfor(&loader->cond, &session->spotify_mutex, timeout);
@@ -498,14 +498,14 @@ bool sx_spotify_load_track_sync(sx_session *session, sp_track *track, int timeou
 	return is_loaded;
 }
 
-sp_album *sx_spotify_load_album_for_track_sync(sx_session *session, sp_track *track, int timeout) {
-	if (!sx_spotify_load_track_sync(session, track, timeout)) {
+sp_album *sxp_load_album_for_track_sync(sx_session *session, sp_track *track, int timeout) {
+	if (!sxp_load_track_sync(session, track, timeout)) {
 		sx_log(session, "track failed to load");
 		return NULL;
 	}
 	sp_album *album = sp_track_album(track);
 	if (album) {
-		if (!sx_spotify_load_album_sync(session, album, timeout)) {
+		if (!sxp_load_album_sync(session, album, timeout)) {
 			sx_log(session, "album failed to load");
 			return NULL;
 		}
