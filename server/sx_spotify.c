@@ -22,6 +22,7 @@ typedef struct sxp_loader {
 	void *sp_obj;
 	void *data;
 	bool free;
+	pthread_mutex_t mutex;
 } sxp_loader;
 
 static spotify_metadata_listener_list_item *remove_metadata_listener_list_item(sx_session *session, spotify_metadata_listener_list_item *item);
@@ -302,15 +303,20 @@ static spotify_metadata_listener_list_item *remove_metadata_listener_list_item(s
 static sxp_loader *sxp_create_loader() {
 	sxp_loader *loader = malloc(sizeof(sxp_loader));
 	bzero(loader, sizeof(sxp_loader));
+	pthread_mutex_init(&loader->mutex, NULL);
 	return loader;
 }
 
 static void sxp_release_loader(sxp_loader *loader) {
+	pthread_mutex_lock(&loader->mutex);
 	if (loader->free) {
+		pthread_mutex_unlock(&loader->mutex);
+		pthread_mutex_destroy(&loader->mutex);
 		free(loader);
 	}
 	else {
 		loader->free = true;
+		pthread_mutex_unlock(&loader->mutex);
 	}
 }
 
@@ -340,7 +346,8 @@ static bool track_loaded_metadata_callback(sx_session *session, void *data) {
 
 	if (is_loaded) {
 		loader->callback(session, loader->data);
-		free(loader);
+		loader->free = true;
+		sxp_release_loader(loader);
 	}
 
 	return is_loaded;
