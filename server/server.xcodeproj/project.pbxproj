@@ -33,6 +33,7 @@
 		94E03233126A29B100A59FA5 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E03231126A29B100A59FA5 /* audio.c */; };
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
+		94F074D012A8769D003FA35D /* base64_encode.c in Sources */ = {isa = PBXBuildFile; fileRef = 94F074CF12A8769D003FA35D /* base64_encode.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -96,6 +97,8 @@
 		94E03236126A2A1500A59FA5 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
 		94E0324F126A2B1F00A59FA5 /* osx-audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "osx-audio.c"; sourceTree = "<group>"; };
 		94E03253126A2B6800A59FA5 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		94F074CE12A8769D003FA35D /* base64_encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64_encode.h; sourceTree = "<group>"; };
+		94F074CF12A8769D003FA35D /* base64_encode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base64_encode.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +161,7 @@
 				94D0FE56129F2F9E00E7E09E /* OS X */,
 				9499E98A128389F00002B79F /* js */,
 				9471D5F7126A15A30042C978 /* http-parser */,
+				94F074CD12A8769D003FA35D /* base64 */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
@@ -248,6 +252,15 @@
 			name = "OS X";
 			sourceTree = "<group>";
 		};
+		94F074CD12A8769D003FA35D /* base64 */ = {
+			isa = PBXGroup;
+			children = (
+				94F074CE12A8769D003FA35D /* base64_encode.h */,
+				94F074CF12A8769D003FA35D /* base64_encode.c */,
+			);
+			path = base64;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -327,6 +340,7 @@
 				9499EC42128619020002B79F /* keychain.c in Sources */,
 				94CC837A12A06F8200C14128 /* sx_spotify.c in Sources */,
 				94CC837D12A07B2500C14128 /* sx_json.c in Sources */,
+				94F074D012A8769D003FA35D /* base64_encode.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

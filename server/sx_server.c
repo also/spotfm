@@ -1,6 +1,7 @@
 #include "sx.h"
 #include "sx_server.h"
 #include "sx_spotify.h"
+#include "base64_encode.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,11 @@ int on_client_headers_complete(http_parser *parser);
 
 static void handle_client_request(sx_client *c, char *body, size_t body_len);
 static char *get_header(sx_client *c, char *name);
+
+static void stream_json(void *ctx, const char *str, unsigned int len) {
+	sx_client *c = ctx;
+	send(c->fd, str, len, 0);
+}
 
 static char *get_header(sx_client *c, char *name) {
 	for (int i = 0; i < c->header_count; i++) {
@@ -246,22 +252,52 @@ static void handle_client_request(sx_client *c, char *body, size_t body_len) {
 			return;
 		}
 	}
-	else if (strstr(c->path, "track_album_cover/")) {
-		sp_track *track = sx_spotify_track_for_url(c->session, c->path + 18);
+	else if (strstr(c->path, "track_detail/") == c->path) {
+		sp_track *track = sx_spotify_track_for_url(c->session, c->path + 13);
+
 		if (track) {
 			sp_album *album = sx_spotify_load_album_for_track_sync(c->session, track, 1000);
 			if (album) {
+				send_client(c, "HTTP/1.0 200 OK" CRLF);
+				send_client(c, "Access-Control-Allow-Origin: *" CRLF);
+				send_client(c, "Content-Type: text/json" CRLF CRLF);
+				sx_spotify_load_track_sync(c->session, track, 1000);
+				yajl_gen_config conf = { false };
+				yajl_gen g = yajl_gen_alloc2(stream_json, &conf, NULL, c);
+				yajl_gen_map_open(g);
+				sx_add_track_info(c->session, g, track);
+
 				sx_spotify_image *image = sx_spotify_get_album_cover(c->session, album);
 				if (image) {
-					send_client(c, "HTTP/1.0 200 OK" CRLF);
-					send_client(c, "Content-Type: image/jpeg" CRLF CRLF);
-					send(c->fd, image->data, image->size, 0);
+					yajl_gen_string0(g, "album_cover");
+					send_client(c, ":\"");
+					char buf[1024];
+					base64_encodestate state;
+					base64_init_encodestate(&state);
+					int len;
+					for (int i = 0; i < image->size; i += 512) {
+						if (i + 512 > image->size) {
+							len = image->size - i;
+						}
+						else {
+							len = 512;
+						}
+						len = base64_encode_block(image->data + i, len, buf, &state);
+						send(c->fd, buf, len, 0);
+					}
+					len = base64_encode_blockend(buf, &state);
+					send(c->fd, buf, len, 0);
+					send_client(c, "\"");
 					sx_spotify_free_image(c->session, image);
-					// FIXME lock
-					sp_track_release(track);
-					return;
 				}
+				yajl_gen_free(g);
+				send_client(c, "}");
 			}
+
+			sxp_lock(c->session);
+			sp_track_release(track);
+			sxp_unlock(c->session);
+			return;
 		}
 	}
 	else if (!strcmp("monitor", c->path)) {
