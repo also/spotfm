@@ -320,7 +320,6 @@ static void sxp_release_loader(sxp_loader *loader) {
 	}
 }
 
-
 void sx_spotify_load_track(sx_session *session, sp_track *track, sx_callback *callback, void *data) {
 	pthread_mutex_lock(&session->spotify_mutex);
 	bool is_loaded = sp_track_is_loaded(track);
@@ -363,44 +362,49 @@ sx_spotify_image *sx_spotify_get_album_cover(sx_session *session, sp_album *albu
 	sp_error err;
 	sx_spotify_image *result = malloc(sizeof(sx_spotify_image));
 
-	sxp_loader *loader = sxp_create_loader();
-	loader->session = session;
-	pthread_cond_init(&loader->cond, NULL);
-
 	pthread_mutex_lock(&session->spotify_mutex);
 
-	result->sp_image = sp_image_create(session->spotify_session, sp_album_cover(album));
+	const byte *image = sp_album_cover(album);
 
-	bool is_loaded = sp_image_is_loaded(result->sp_image);
+	if (image) {
+		sxp_loader *loader = sxp_create_loader();
+		loader->session = session;
+		pthread_cond_init(&loader->cond, NULL);
+		result->sp_image = sp_image_create(session->spotify_session, image);
 
-	if (!is_loaded) {
-		sp_image_add_load_callback(result->sp_image, image_loaded, loader);
+		bool is_loaded = sp_image_is_loaded(result->sp_image);
 
-		sx_waitfor(&loader->cond, &session->spotify_mutex, 2000);
-		sp_image_remove_load_callback(result->sp_image, image_loaded, loader);
-	}
+		if (!is_loaded) {
+			sp_image_add_load_callback(result->sp_image, image_loaded, loader);
 
-	err = sp_image_error(result->sp_image);
-	if (err != SP_ERROR_OK) {
-		sx_log(session, "error loading image: %s", sp_error_message(err));
-		sp_image_release(result->sp_image);
-		free(result);
-		result = NULL;
+			sx_waitfor(&loader->cond, &session->spotify_mutex, 2000);
+			sp_image_remove_load_callback(result->sp_image, image_loaded, loader);
+		}
+
+		err = sp_image_error(result->sp_image);
+		if (err != SP_ERROR_OK) {
+			sx_log(session, "error loading image: %s", sp_error_message(err));
+			sp_image_release(result->sp_image);
+			free(result);
+			result = NULL;
+		}
+		else {
+			result->data = sp_image_data(result->sp_image, &result->size);
+		}
+		pthread_cond_destroy(&loader->cond);
+		sxp_release_loader(loader);
 	}
 	else {
-		result->data = sp_image_data(result->sp_image, &result->size);
+		sx_log(session, "no image");
 	}
 
 	pthread_mutex_unlock(&session->spotify_mutex);
-	pthread_cond_destroy(&loader->cond);
-	sxp_release_loader(loader);
 
 	return result;
 }
 
 void sx_spotify_free_image(sx_session *session, sx_spotify_image *image) {
 	pthread_mutex_lock(&session->spotify_mutex);
-	// FIXME this causes crashes. leaking.
 	sp_image_release(image->sp_image);
 	free(image);
 	pthread_mutex_unlock(&session->spotify_mutex);
