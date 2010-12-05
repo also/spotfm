@@ -429,11 +429,12 @@ bool album_loaded_sync_metadata_callback(sx_session *session, void *data) {
 	sp_album *album = loader->sp_obj;
 	pthread_mutex_lock(&session->spotify_mutex);
 	bool is_loaded = sp_album_is_loaded(album);
+	pthread_mutex_unlock(&session->spotify_mutex);
 	if (is_loaded) {
 		pthread_cond_signal(&loader->cond);
 		sxp_release_loader(loader);
 	}
-	pthread_mutex_unlock(&session->spotify_mutex);
+
 	return is_loaded;
 }
 
