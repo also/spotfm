@@ -5,8 +5,17 @@ function xm(action) {
 }
 
 var spotfm = {
+    callbackNum: 0,
+    callbacks: {},
+
     call: function (action, options) {
         extension.send({action: action, options: options});
+    },
+
+    resolve: function (trackInfo, options) {
+        var callbackNum = '' + spotfm.callbackNum++;
+        spotfm.callbacks[callbackNum] = options;
+        spotfm.call('resolve', {trackInfo: trackInfo, context: callbackNum});
     },
 
     resolveAndPlay: function (trackInfo) {

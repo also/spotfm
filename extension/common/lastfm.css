@@ -20,3 +20,16 @@ tbody tr td.playbuttonCell {
 table.chart .spotfmPlaying td.subjectCell a {
     color: #fff !important;
 }
+
+iframe.track-detail-frame {
+    position: absolute;
+    width: 400px;
+    height: 200px;
+    background: transparent;
+    border: none;
+    -webkit-transition: height .3s ease-in;
+}
+
+iframe.track-detail-frame.loading {
+    height: 50px;
+}

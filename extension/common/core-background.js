@@ -85,18 +85,23 @@ spotfm.onPositionChange = function (position) {
 };
 
 spotfm.scrobble = function (lastfmTrackId) {
-    var audioRequest = new Request({url: 'http://www.last.fm/ajax/scrobble', method:'post'});
-    audioRequest.send('track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken);
+    $.ajax({url: 'http://www.last.fm/ajax/scrobble', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
 };
 
 spotfm.nowplaying = function (lastfmTrackId) {
-    var audioRequest = new Request({url: 'http://www.last.fm/ajax/nowplaying', method:'post'});
-    audioRequest.send('track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken);
+    $.ajax({url: 'http://www.last.fm/ajax/nowplaying', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
 };
 
 extension.onMessage = function (sender, message) {
     var action = message.action;
     var options = message.options;
+    if (action == 'resolve') {
+        spotfm.resolve(options.trackInfo, {
+            onResolution: function() {
+                extension.send(sender, {action: 'callback', options: {context: options.context, callback: 'onResolution', args: Array.prototype.slice.call(arguments)}});
+            }
+        });
+    }
     if (action == 'resolveAndPlay') {
         spotfm.resolveAndPlay(options.trackInfo);
     }

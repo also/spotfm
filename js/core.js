@@ -4,23 +4,22 @@ var spotfm = {
     player: {position: 0},
 
     play: function (trackId) {
-        var audioRequest = new Request({url: "http://localhost:9999/play/" + trackId, method:'get'});
-        audioRequest.send();
+        $.get('http://localhost:9999/play/' + trackId);
     },
 
     pause: function () {
-        new Request({url: 'http://localhost:9999/stop'}).send();
+        $.get('http://localhost:9999/stop');
     },
 
     resume: function () {
-        new Request({url: 'http://localhost:9999/resume'}).send();
+        $.get('http://localhost:9999/resume');
     },
 
     resolve: function (trackInfo, options) {
         options = options || {};
         var query = [escape(trackInfo.artist), escape(trackInfo.track)].join('+');
         var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
-        var jsonRequest = new Request.JSON({url: requestURL, method:'get', headers: {}, onSuccess: function (json_object, json_string) {
+        $.ajax({url: requestURL, method:'get', success: function (json_object) {
             var tracks = json_object.tracks.filter(function (track) {
                 return track.album.availability.territories.indexOf(TERRITORY) >= 0;
             });
@@ -37,7 +36,6 @@ var spotfm = {
                 }
             }
         }});
-        jsonRequest.send();
     },
 
     resolveAndPlay: function (trackInfo, options) {

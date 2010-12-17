@@ -9,7 +9,7 @@
       "js": [
         "extension-page.js",
         "extension-page-chrome.js",
-        "mootools-core-1.3-full-nocompat-yc.js",
+        "jquery-1.4.4.min.js",
         "page.js",
         "lastfm.js"],
       "css": ["lastfm.css"]

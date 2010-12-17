@@ -55,13 +55,14 @@ html {
     background-color: #666;
 }
 </style>
-<script src="mootools-core-1.3-full-nocompat-yc.js"></script>
+<script src="jquery-1.4.4.min.js"></script>
 <script src="core.js"></script>
 <script type="text/javascript">
 spotfm.onTrackInfo = function (trackInfo) {
-    $('track').set('html', trackInfo.track_name);
-    $('album').set('html', trackInfo.album_name);
-    $('artist').set('html', trackInfo.artist_name);
+    console.log('onTrackInfo');
+    $('#track').html(trackInfo.track_name);
+    $('#album').html(trackInfo.album_name);
+    $('#artist').html(trackInfo.artist_name);
 }
 
 spotfm.onPlay = function () {
@@ -81,7 +82,7 @@ spotfm.onPositionChange = function (position) {
         percent = (position / spotfm.player.duration * 100).toFixed(2);
     }
 
-    $('position').setStyle('width', percent + '%');
+    $('#position').css('width', percent + '%');
 }
 
 spotfm.connect();
@@ -105,8 +106,8 @@ function pause() {
 <span class="button" id="resume">‣</span></p>
 <div id="scrubber"><div id="position"></div></div>
 <script type="text/javascript">
-$('pause').addEvent('click', pause);
-$('resume').addEvent('click', resume);
+$('pause').bind('click', pause);
+$('resume').bind('click', resume);
 </script>
 </body>
 </html>
