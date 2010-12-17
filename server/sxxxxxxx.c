@@ -182,6 +182,10 @@ static void handle_player_stop(audio_player_t *player) {
 void sx_add_track_info(sx_session *session, yajl_gen g, sp_track *track) {
 	sxp_lock(session);
 	const char *track_name = sp_track_name(track);
+	sp_link *link = sp_link_create_from_track(track, 0);
+	char track_link[37];
+	sp_link_as_string(link, track_link, 37);
+	sp_link_release(link);
 	sp_album* album = sp_track_album(track);
 	// FIXME not necessarily loaded yet
 	const char *album_name = sp_album_name(album);
@@ -189,6 +193,9 @@ void sx_add_track_info(sx_session *session, yajl_gen g, sp_track *track) {
 	const char *artist_name = sp_artist_name(artist);
 	int duration = sp_track_duration(track);
 	sxp_unlock(session);
+
+	yajl_gen_string0(g, "track_id");
+	yajl_gen_string0(g, track_link);
 
 	yajl_gen_string0(g, "track_name");
 	yajl_gen_string0(g, track_name);
