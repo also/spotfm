@@ -17,6 +17,22 @@ html {
     font-size: 12px;
 }
 
+#art {
+    width: 150px;
+    height: 150px;
+    float: left;
+    margin: 0 8px 8px 0;
+}
+
+#art img {
+    max-width: 150px;
+    max-height: 150px;
+}
+
+#not-art {
+    margin-left: 158px;
+}
+
 .button {
     padding: 4px;
     background: #888888;
@@ -59,10 +75,15 @@ html {
 <script src="core.js"></script>
 <script type="text/javascript">
 spotfm.onTrackInfo = function (trackInfo) {
-    console.log('onTrackInfo');
     $('#track').html(trackInfo.track_name);
     $('#album').html(trackInfo.album_name);
     $('#artist').html(trackInfo.artist_name);
+    $.ajax({url: 'http://localhost:9999/track_detail/' + trackInfo.track_id, method:'get',
+        success: function (o) {
+            var img = $('<img class="album-cover" src="data:image/jpeg;base64,' + o.album_cover + '"/>');
+            $('#art').empty().append(img);
+        }
+    });
 }
 
 spotfm.onPlay = function () {
@@ -98,6 +119,9 @@ function pause() {
 </head>
 <body>
 
+<div id="art"></div>
+
+<div id="not-art">
 <div id="track"></div>
 <div id="album"></div>
 <div id="artist"></div>
@@ -105,6 +129,7 @@ function pause() {
 <p><span class="button" id="pause">■</span>
 <span class="button" id="resume">‣</span></p>
 <div id="scrubber"><div id="position"></div></div>
+</div>
 <script type="text/javascript">
 $('pause').bind('click', pause);
 $('resume').bind('click', resume);

@@ -27,7 +27,6 @@ iframe.track-detail-frame {
     height: 200px;
     background: transparent;
     border: none;
-    -webkit-transition: height .3s ease-in;
 }
 
 iframe.track-detail-frame.loading {
