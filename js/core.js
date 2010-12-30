@@ -115,7 +115,9 @@ var spotfm = {
                     }
                 }
                 else if (j.event == 'play') {
-                    spotfm.tryToPlay();
+                    if (spotfm.tryToPlay) {
+                        spotfm.tryToPlay();
+                    }
                 }
             }
         };
