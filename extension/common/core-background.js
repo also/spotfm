@@ -69,15 +69,22 @@ spotfm.tryToPlay = function () {
 
 spotfm.onTrackStart = function () {
     spotfm.scrobbled = false;
-    if (spotfm.currentTrack && spotfm.currentTrack.lastfmId) {
+    if (extension.getSetting('scrobble') && spotfm.currentTrack && spotfm.currentTrack.lastfmId) {
         spotfm.nowplaying(spotfm.currentTrack.lastfmId);
     }
 };
 
 spotfm.onPositionChange = function (position) {
-    if (spotfm.scrobbled || !spotfm.currentTrack || !spotfm.player.duration || spotfm.player.duration < 30000) {
+    // only scrobble if
+    //  * scrobbling is enabled in settings
+    //  * we haven't already scrobbled
+    //  * there is a current track
+    //  * the track isn't empty
+    //  * the track is longer than 30 seconds (last.fm rule)
+    if (!extension.getSetting('scrobble') || spotfm.scrobbled || !spotfm.currentTrack || !spotfm.player.duration || spotfm.player.duration < 30000) {
         return;
     }
+    //  * the player is 4 minutes or halfway through the track, whichever is earlier (last.fm rule)
     if (position >= Math.min(4 * 60 * 1000, spotfm.player.duration / 2)) {
         spotfm.scrobbled = true;
         spotfm.scrobble(spotfm.currentTrack.lastfmId);
