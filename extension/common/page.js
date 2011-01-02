@@ -72,7 +72,6 @@ extension.onMessage = function(message) {
     var options = message.options;
 
     if (action == 'callback') {
-        console.log('callback');
         var callbackOptions = spotfm.callbacks[options.context];
         var callback = callbackOptions[options.callback];
         if (callback) {

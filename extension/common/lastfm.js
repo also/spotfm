@@ -1,7 +1,6 @@
 $('.candyStriped td, .tracklist td').live('click', function (event) {
     var target = event.target;
     if ($(target).closest('td.playbuttonCell').length > 0) {
-        console.log('clicked spotify icon');
         showDetail(event);
         return;
     }
