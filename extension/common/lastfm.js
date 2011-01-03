@@ -1,9 +1,9 @@
 $('.candyStriped td, .tracklist td').live('click', function (event) {
     var target = event.target;
-    if ($(target).closest('td.playbuttonCell').length > 0) {
-        showDetail(event);
-        return;
-    }
+    // if ($(target).closest('td.playbuttonCell').length > 0) {
+    //     showDetail(event);
+    //     return;
+    // }
     var trElt = $(target).closest('tr').get(0);
     playTrElt(trElt);
 });
