@@ -74,6 +74,25 @@ spotfm.onTrackStart = function () {
     }
 };
 
+spotfm.openTrackInApp = function (trackInfo) {
+    spotfm.resolve(trackInfo, {
+        onResolution: function (id) {
+            extension.openExternalUri(id);
+        },
+        onResolutionFailure: function () {
+            extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
+        }
+    });
+}
+
+spotfm.searchTrackInApp = function (trackInfo) {
+    extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
+};
+
+spotfm.searchObjectInApp = function (info) {
+    extension.openExternalUri('spotify:search:' + spotfm.generateQuery(info));
+};
+
 spotfm.onPositionChange = function (position) {
     // only scrobble if
     //  * scrobbling is enabled in settings
@@ -126,3 +145,27 @@ extension.onMessage = function (sender, message) {
 };
 
 spotfm.connect();
+
+if (window.safari) {
+    safari.application.addEventListener('contextmenu', function (event) {
+        if (event.userInfo.objectInfo) {//} && (!event.userInfo.trackInfo || event.userInfo.objectInfo.type != 'track')) {
+            event.contextMenu.appendContextMenuItem('searchObjectInApp', 'Search in Spotify');
+        }
+        if (event.userInfo.trackInfo) {
+            event.contextMenu.appendContextMenuItem('searchTrackInApp', 'Search Track in Spotify');
+            event.contextMenu.appendContextMenuItem('openTrackInApp', 'Open Track in Spotify');
+        }
+    }, false);
+
+    safari.application.addEventListener('command', function (event) {
+        if (event.command == 'searchTrackInApp') {
+            spotfm.searchTrackInApp(event.userInfo.trackInfo);
+        }
+        else if (event.command == 'openTrackInApp') {
+            spotfm.openTrackInApp(event.userInfo.trackInfo)
+        }
+        else if (event.command == 'searchObjectInApp') {
+            spotfm.searchObjectInApp(event.userInfo.objectInfo);
+        }
+    }, false);
+}

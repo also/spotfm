@@ -19,3 +19,9 @@ extension.setSetting = function (key, value) {
 extension.addSettingListener = function (listener) {
     safari.extension.settings.addEventListener('change', listener, false);
 };
+
+extension.openExternalUri = function (uri) {
+    var win = safari.application.openBrowserWindow();
+    win.activeTab.url = uri;
+    win.close();
+}

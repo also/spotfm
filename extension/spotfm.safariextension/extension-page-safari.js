@@ -11,3 +11,7 @@ safari.self.addEventListener('message', function (event) {
 extension.getURL = function (name) {
     return safari.extension.baseURI + name;
 };
+
+extension.setContextMenuEventUserInfo = function (e, userInfo) {
+    safari.self.tab.setContextMenuEventUserInfo(e, userInfo);
+};

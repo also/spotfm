@@ -15,9 +15,23 @@ var spotfm = {
         $.get('http://localhost:9999/resume');
     },
 
+    generateQuery: function(info) {
+        var parts = [];
+        ['artist', 'album', 'track'].forEach(function (type) {
+            // TODO escape quotes
+            if (info[type]) parts.push(type + ':"' + info[type] + '"');
+        });
+        return parts.join(' ');
+    },
+
+    generateTrackQuery: function (trackInfo) {
+        // TODO escape quotes
+        return 'artist:"' + trackInfo.artist + '" track:"' + trackInfo.track + '"';
+    },
+
     resolve: function (trackInfo, options) {
         options = options || {};
-        var query = [escape(trackInfo.artist), escape(trackInfo.track)].join('+');
+        var query = escape(spotfm.generateTrackQuery(trackInfo));
         var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
         $.ajax({url: requestURL, method:'get', success: function (json_object) {
             var tracks = json_object.tracks.filter(function (track) {
