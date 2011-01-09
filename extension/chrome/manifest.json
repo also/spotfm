@@ -2,6 +2,9 @@
   "name": "spotfm",
   "version": "1.0",
   "description": "Spotify player for last.fm pages",
+  "icons": {
+    "128": "icon128.png"
+  },
   "permissions": ["http://www.last.fm/*", "http://ws.spotify.com/*", "http://localhost:9999/*"],
   "content_scripts": [
     {
