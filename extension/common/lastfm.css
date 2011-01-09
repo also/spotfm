@@ -3,7 +3,7 @@
 }
 
 tbody tr:not([data-spotify-unresolvable]) td.playbuttonCell {
-    background-image: url('http://static.ryanberdeen.com/spotify-icon-small.png') !important;
+    background-image: url('http://static.ryanberdeen.com/spotfm-icon-16.png') !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
 }
