@@ -9,6 +9,8 @@
 	NSMenu *statusMenu;
 	WebView *webView;
 	sxxxxxxx_session *session;
+	BOOL iconInDock;
+	BOOL showControlsOnActive;
 }
 
 @property (assign) IBOutlet NSWindow *window;

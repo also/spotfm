@@ -38,6 +38,16 @@ static void _log(void *data, const char *message);
 	free(password);
 	[self showStatusItem];
 	sxxxxxxx_run(session, TRUE);
+
+	iconInDock = [[NSUserDefaults standardUserDefaults] boolForKey:@"ShowInDock"];
+	if (iconInDock) {
+		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+		// http://www.cocoadev.com/index.pl?TransformProcessType
+		// the menu bar for the app won't work until we switch to a different prcess, then back. or something.
+		ProcessSerialNumber psnx = { 0, kNoProcess };
+		GetNextProcess(&psnx);
+		SetFrontProcess(&psnx);
+	}
 }
 
 - (void) showStatusItem {
@@ -46,7 +56,13 @@ static void _log(void *data, const char *message);
     NSStatusItem *statusItem = [bar statusItemWithLength:NSVariableStatusItemLength];
     [statusItem retain];
 
-    [statusItem setTitle: NSLocalizedString(@"•㎙",@"")];
+	if ([[[NSUserDefaults standardUserDefaults] stringForKey:@"StatusItemType"] isEqualToString:@"text"]) {
+		[statusItem setTitle: NSLocalizedString(@"•㎙",@"")];
+	}
+	else {
+		NSImage *menuImage = [[NSImage alloc] initWithContentsOfFile: [[NSBundle mainBundle] pathForResource:@"status-icon" ofType:@"png"]];
+		statusItem.image = menuImage;
+	}
     [statusItem setHighlightMode:YES];
 	[statusItem setMenu:statusMenu];
 }

@@ -35,6 +35,7 @@
 		94E03250126A2B1F00A59FA5 /* osx-audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 94E0324F126A2B1F00A59FA5 /* osx-audio.c */; };
 		94E03254126A2B6800A59FA5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E03253126A2B6800A59FA5 /* AudioToolbox.framework */; };
 		94E4ED5E12D903BB00BF6C30 /* spotfm.icns in Resources */ = {isa = PBXBuildFile; fileRef = 94E4ED5D12D903BB00BF6C30 /* spotfm.icns */; };
+		94E4ED8512D906AC00BF6C30 /* status-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 94E4ED8412D906AC00BF6C30 /* status-icon.png */; };
 		94F074D012A8769D003FA35D /* base64_encode.c in Sources */ = {isa = PBXBuildFile; fileRef = 94F074CF12A8769D003FA35D /* base64_encode.c */; };
 /* End PBXBuildFile section */
 
@@ -65,7 +66,7 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* server-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "server-Info.plist"; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* SXXXXXXX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SXXXXXXX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* spotfm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = spotfm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		943E8E49127DCC86006894D3 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		9458ECAC12845BE500E3B662 /* libyajl.1.0.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libyajl.1.0.11.dylib; path = "yajl/build/yajl-1.0.11/lib/libyajl.1.0.11.dylib"; sourceTree = "<group>"; };
 		9458ECE01284D3D700E3B662 /* SXXXXXXXApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SXXXXXXXApplication.h; sourceTree = "<group>"; };
@@ -100,6 +101,7 @@
 		94E0324F126A2B1F00A59FA5 /* osx-audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "osx-audio.c"; sourceTree = "<group>"; };
 		94E03253126A2B6800A59FA5 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		94E4ED5D12D903BB00BF6C30 /* spotfm.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = spotfm.icns; sourceTree = "<group>"; };
+		94E4ED8412D906AC00BF6C30 /* status-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "status-icon.png"; sourceTree = "<group>"; };
 		94F074CE12A8769D003FA35D /* base64_encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64_encode.h; sourceTree = "<group>"; };
 		94F074CF12A8769D003FA35D /* base64_encode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base64_encode.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -153,7 +155,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* SXXXXXXX.app */,
+				8D1107320486CEB800E47090 /* spotfm.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -200,6 +202,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				94E4ED8412D906AC00BF6C30 /* status-icon.png */,
 				94E4ED5D12D903BB00BF6C30 /* spotfm.icns */,
 				8D1107310486CEB800E47090 /* server-Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
@@ -268,9 +271,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8D1107260486CEB800E47090 /* SXXXXXXX */ = {
+		8D1107260486CEB800E47090 /* spotfm */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "SXXXXXXX" */;
+			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "spotfm" */;
 			buildPhases = (
 				9471D684126A1A8A0042C978 /* Copy Frameworks */,
 				8D1107290486CEB800E47090 /* Resources */,
@@ -281,10 +284,10 @@
 			);
 			dependencies = (
 			);
-			name = SXXXXXXX;
+			name = spotfm;
 			productInstallPath = "$(HOME)/Applications";
 			productName = server;
-			productReference = 8D1107320486CEB800E47090 /* SXXXXXXX.app */;
+			productReference = 8D1107320486CEB800E47090 /* spotfm.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -306,7 +309,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D1107260486CEB800E47090 /* SXXXXXXX */,
+				8D1107260486CEB800E47090 /* spotfm */,
 			);
 		};
 /* End PBXProject section */
@@ -322,6 +325,7 @@
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				94E4ED5E12D903BB00BF6C30 /* spotfm.icns in Resources */,
+				94E4ED8512D906AC00BF6C30 /* status-icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,7 +397,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/yajl/build/yajl-1.0.11/lib\"",
 				);
-				PRODUCT_NAME = SXXXXXXX;
+				PRODUCT_NAME = spotfm;
 			};
 			name = Debug;
 		};
@@ -415,7 +419,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/yajl/build/yajl-1.0.11/lib\"",
 				);
-				PRODUCT_NAME = SXXXXXXX;
+				PRODUCT_NAME = spotfm;
 			};
 			name = Release;
 		};
@@ -458,7 +462,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "SXXXXXXX" */ = {
+		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "spotfm" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C01FCF4B08A954540054247B /* Debug */,
