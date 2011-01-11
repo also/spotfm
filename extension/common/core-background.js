@@ -1,122 +1,105 @@
-spotfm.call = function (action, options) {
-    if (spotfm.currentPage) {
-        extension.send(spotfm.currentPage, {action: action, options: options});
-    }
-};
-
-spotfm.setPlaylist = function (playlist, playlistOffset) {
-    spotfm.playlist = playlist;
-    spotfm.playlistOffset = playlistOffset || 0;
-};
-
-spotfm.playOffset = function (offset) {
-    var trackInfo = spotfm.playlist[offset];
-
-    spotfm.currentTrack = trackInfo;
-    spotfm.playlistOffset = offset;
-
-    spotfm.call('onPlay', {offset: offset});
-
-    if (trackInfo.spotifyId) {
-        spotfm.play(trackInfo.spotifyId);
-    }
-    else if (trackInfo.unresolvable) {
-        spotfm.next();
-    }
-    else {
-        spotfm.resolveAndPlay(trackInfo, {
-            onResolution: function (id) {
-                trackInfo.spotifyId = id;
-                spotfm.call('onResolution', {offset: offset, id: id});
-            },
-            onResolutionFailure: function () {
-                trackInfo.unresolvable = null;
-                spotfm.call('onResolutionFailure', {offset: offset});
-                spotfm.next();
-            }
-        });
-    }
-};
-
-spotfm.setCurrentPage = function (page) {
-    // TODO notify current page
-    spotfm.currentPage = page;
-};
-
-spotfm.playFromPlaylist = function (page, playlist, offset) {
-    spotfm.setCurrentPage(page);
-    spotfm.setPlaylist(playlist);
-    spotfm.playOffset(offset);
-};
-
-spotfm.next = function() {
-    if (spotfm.playlist && spotfm.playlistOffset + 1 < spotfm.playlist.length) {
-        spotfm.playOffset(spotfm.playlistOffset + 1);
-    }
-};
-
-spotfm.previous = function() {
-    if (spotfm.playlist && spotfm.playlistOffset - 1 >= 0) {
-        spotfm.playOffset(spotfm.playlistOffset - 1);
-    }
-};
-
-spotfm.tryToPlay = function () {
-    if (spotfm.playlist) {
-        spotfm.playOffset(spotfm.playlistOffset);
-    }
-};
-
-spotfm.onTrackStart = function () {
-    spotfm.scrobbled = false;
-    if (extension.getSetting('scrobble') && spotfm.currentTrack && spotfm.currentTrack.lastfmId) {
-        spotfm.nowplaying(spotfm.currentTrack.lastfmId);
-    }
-};
-
-spotfm.openTrackInApp = function (trackInfo) {
-    spotfm.resolve(trackInfo, {
-        onResolution: function (id) {
-            extension.openExternalUri(id);
-        },
-        onResolutionFailure: function () {
-            extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
+_.extend(spotfm, {
+    call: function (action, options) {
+        if (spotfm.currentPage) {
+            extension.send(spotfm.currentPage, {action: action, options: options});
         }
-    });
-}
+    },
 
-spotfm.searchTrackInApp = function (trackInfo) {
-    extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
-};
+    setPlaylist: function (playlist, playlistOffset) {
+        spotfm.playlist = playlist;
+        spotfm.playlistOffset = playlistOffset || 0;
+    },
 
-spotfm.searchObjectInApp = function (info) {
-    extension.openExternalUri('spotify:search:' + spotfm.generateQuery(info));
-};
+    playOffset: function (offset) {
+        var trackInfo = spotfm.playlist[offset];
 
-spotfm.onPositionChange = function (position) {
-    // only scrobble if
-    //  * scrobbling is enabled in settings
-    //  * we haven't already scrobbled
-    //  * there is a current track
-    //  * the track isn't empty
-    //  * the track is longer than 30 seconds (last.fm rule)
-    if (!extension.getSetting('scrobble') || spotfm.scrobbled || !spotfm.currentTrack || !spotfm.player.duration || spotfm.player.duration < 30000) {
-        return;
+        spotfm.currentTrack = trackInfo;
+        spotfm.playlistOffset = offset;
+
+        spotfm.call('onPlay', {offset: offset});
+
+        if (trackInfo.spotifyId) {
+            spotfm.play(trackInfo.spotifyId);
+        }
+        else if (trackInfo.unresolvable) {
+            spotfm.next();
+        }
+        else {
+            spotfm.resolveAndPlay(trackInfo, {
+                onResolution: function (id) {
+                    trackInfo.spotifyId = id;
+                    spotfm.call('onResolution', {offset: offset, id: id});
+                },
+                onResolutionFailure: function () {
+                    trackInfo.unresolvable = null;
+                    spotfm.call('onResolutionFailure', {offset: offset});
+                    spotfm.next();
+                }
+            });
+        }
+    },
+
+    setCurrentPage: function (page) {
+        // TODO notify current page
+        spotfm.currentPage = page;
+    },
+
+    playFromPlaylist: function (page, playlist, offset) {
+        spotfm.setCurrentPage(page);
+        spotfm.setPlaylist(playlist);
+        spotfm.playOffset(offset);
+    },
+
+    next: function() {
+        if (spotfm.playlist && spotfm.playlistOffset + 1 < spotfm.playlist.length) {
+            spotfm.playOffset(spotfm.playlistOffset + 1);
+        }
+    },
+
+    previous: function() {
+        if (spotfm.playlist && spotfm.playlistOffset - 1 >= 0) {
+            spotfm.playOffset(spotfm.playlistOffset - 1);
+        }
+    },
+
+    tryToPlay: function () {
+        if (spotfm.playlist) {
+            spotfm.playOffset(spotfm.playlistOffset);
+        }
+    },
+
+    onTrackStart: function () {
+        spotfm.scrobbled = false;
+        if (extension.getSetting('scrobble') && spotfm.currentTrack && spotfm.currentTrack.lastfmId) {
+            spotfm.nowplaying(spotfm.currentTrack.lastfmId);
+        }
+    },
+
+    onPositionChange: function (position) {
+        // only scrobble if
+        //  * scrobbling is enabled in settings
+        //  * we haven't already scrobbled
+        //  * there is a current track
+        //  * the track isn't empty
+        //  * the track is longer than 30 seconds (last.fm rule)
+        if (!extension.getSetting('scrobble') || spotfm.scrobbled || !spotfm.currentTrack || !spotfm.player.duration || spotfm.player.duration < 30000) {
+            return;
+        }
+        //  * the player is 4 minutes or halfway through the track, whichever is earlier (last.fm rule)
+        if (position >= Math.min(4 * 60 * 1000, spotfm.player.duration / 2)) {
+            spotfm.scrobbled = true;
+            spotfm.scrobble(spotfm.currentTrack.lastfmId);
+        }
+    },
+
+    scrobble: function (lastfmTrackId) {
+        $.ajax({url: 'http://www.last.fm/ajax/scrobble', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
+    },
+
+    nowplaying: function (lastfmTrackId) {
+        $.ajax({url: 'http://www.last.fm/ajax/nowplaying', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
     }
-    //  * the player is 4 minutes or halfway through the track, whichever is earlier (last.fm rule)
-    if (position >= Math.min(4 * 60 * 1000, spotfm.player.duration / 2)) {
-        spotfm.scrobbled = true;
-        spotfm.scrobble(spotfm.currentTrack.lastfmId);
-    }
-};
-
-spotfm.scrobble = function (lastfmTrackId) {
-    $.ajax({url: 'http://www.last.fm/ajax/scrobble', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
-};
-
-spotfm.nowplaying = function (lastfmTrackId) {
-    $.ajax({url: 'http://www.last.fm/ajax/nowplaying', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
-};
+});
 
 extension.onMessage = function (sender, message) {
     var action = message.action;
@@ -144,7 +127,26 @@ extension.onMessage = function (sender, message) {
     }
 };
 
-spotfm.connect();
+_.extend(spotify, {
+    openTrackInApp: function (trackInfo) {
+        spotfm.resolve(trackInfo, {
+            onResolution: function (id) {
+                extension.openExternalUri(id);
+            },
+            onResolutionFailure: function () {
+                extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
+            }
+        });
+    },
+
+    searchTrackInApp: function (trackInfo) {
+        extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
+    },
+
+    searchObjectInApp: function (info) {
+        extension.openExternalUri('spotify:search:' + spotfm.generateQuery(info));
+    }
+});
 
 if (window.safari) {
     safari.application.addEventListener('contextmenu', function (event) {
@@ -159,13 +161,17 @@ if (window.safari) {
 
     safari.application.addEventListener('command', function (event) {
         if (event.command == 'searchTrackInApp') {
-            spotfm.searchTrackInApp(event.userInfo.trackInfo);
+            spotify.searchTrackInApp(event.userInfo.trackInfo);
         }
         else if (event.command == 'openTrackInApp') {
-            spotfm.openTrackInApp(event.userInfo.trackInfo)
+            spotify.openTrackInApp(event.userInfo.trackInfo)
         }
         else if (event.command == 'searchObjectInApp') {
-            spotfm.searchObjectInApp(event.userInfo.objectInfo);
+            spotify.searchObjectInApp(event.userInfo.objectInfo);
         }
     }, false);
 }
+
+spotfm.source = spotify;
+
+spotfm.connect();

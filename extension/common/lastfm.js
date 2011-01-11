@@ -11,7 +11,6 @@ trackRows.live('click', function (event) {
 });
 
 if (extension.setContextMenuEventUserInfo) {
-    console.log('yay safari!');
     trackRows.live('contextmenu', function (event) {
         var userInfo = {trackInfo: getRowInfo($(event.target).closest('tr').get(0))};
         extension.setContextMenuEventUserInfo(event, userInfo);

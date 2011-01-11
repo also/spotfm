@@ -1,8 +1,6 @@
 var TERRITORY = 'SE';
 
-var spotfm = {
-    player: {position: 0},
-
+var spotify = {
     play: function (trackId) {
         $.get('http://localhost:9999/play/' + trackId);
     },
@@ -31,7 +29,7 @@ var spotfm = {
 
     resolve: function (trackInfo, options) {
         options = options || {};
-        var query = escape(spotfm.generateTrackQuery(trackInfo));
+        var query = escape(this.generateTrackQuery(trackInfo));
         var requestURL = 'http://ws.spotify.com/search/1/track.json?q=' + query;
         $.ajax({url: requestURL, method:'get', success: function (json_object) {
             var tracks = json_object.tracks.filter(function (track) {
@@ -51,40 +49,28 @@ var spotfm = {
             }
         }});
     },
-
-    resolveAndPlay: function (trackInfo, options) {
-        options = options || {};
-        var onResolution = options.onResolution;
-        options.onResolution = function(trackId) {
-            if (onResolution) {
-                onResolution(trackId);
-            }
-            spotfm.play(trackId);
-        }
-        spotfm.resolve(trackInfo, options);
-    },
-
+    
     connect: function () {
-        if (spotfm.ws) {
+        if (this.ws) {
             return;
         }
         console.log('trying to connect');
         var ws = new WebSocket('ws://localhost:9999/monitor');
-        spotfm.ws = ws;
+        this.ws = ws;
         ws.onopen = function () {
             console.log('open');
         };
 
         ws.onerror = function () {
-            spotfm.ws = null;
+            this.ws = null;
             console.log('spotfm connection error');
-            window.setTimeout(spotfm.connect, 1000);
+            window.setTimeout(this.connect, 1000);
         };
 
         ws.onclose = function () {
-            spotfm.ws = null;
+            this.ws = null;
             console.log('spotfm connection closed');
-            window.setTimeout(spotfm.connect, 1000);
+            window.setTimeout(this.connect, 1000);
         };
 
         ws.onmessage = function (a) {
@@ -135,6 +121,22 @@ var spotfm = {
                 }
             }
         };
+    }
+};
+
+var spotfm = {
+    player: {position: 0},
+
+    resolveAndPlay: function (trackInfo, options) {
+        options = options || {};
+        var onResolution = options.onResolution;
+        options.onResolution = function(trackId) {
+            if (onResolution) {
+                onResolution(trackId);
+            }
+            spotfm.play(trackId);
+        }
+        spotfm.resolve(trackInfo, options);
     },
 
     setPosition: function (position) {
@@ -157,3 +159,9 @@ var spotfm = {
         }
     }
 };
+
+['play', 'pause', 'resume', 'resolve', 'connect'].forEach(function (name) {
+    spotfm[name] = function () {
+        this.source[name].apply(this.source, arguments);
+    };
+})
