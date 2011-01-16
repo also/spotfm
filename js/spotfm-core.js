@@ -1,7 +1,4 @@
 var spotify = {
-    connected: false,
-    connecting: false,
-
     play: function (trackId) {
         $.get('http://localhost:9999/play/' + trackId);
     },
@@ -15,35 +12,26 @@ var spotify = {
     },
 
     connect: function () {
-        this.connected = false;
-        this.connecting = true;
-
-        if (this.ws) {
+        if (spotify.ws) {
             return;
         }
-        console.log('trying to connect');
+
         var ws = new WebSocket('ws://localhost:9999/monitor');
-        this.ws = ws;
+        spotify.ws = ws;
         ws.onopen = function () {
-            console.log('open');
-            this.connecting = false;
-            this.connected = true;
+            omnifm.onSourceConnect();
         };
 
         ws.onerror = function () {
-            this.ws = null;
-            this.connected = false;
-            this.connecting = false;
-            console.log('spotfm connection error');
+            omnifm.onSourceConnectionError();
+            spotify.ws = null;
             window.setTimeout(this.connect, 1000);
         };
 
         ws.onclose = function () {
-            this.ws = null;
-            this.connected = false;
-            this.connecting = false;
-            console.log('spotfm connection closed');
-            window.setTimeout(this.connect, 1000);
+            omnifm.onSourceDisconnect();
+            spotify.ws = null;
+            window.setTimeout(spotify.connect, 1000);
         };
 
         ws.onmessage = function (a) {
