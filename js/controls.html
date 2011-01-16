@@ -72,12 +72,14 @@ html {
 }
 </style>
 <script src="jquery-1.4.4.min.js"></script>
-<script src="core.js"></script>
+<script src="omnifm-core.js"></script>
+<script src="spotfm-core.js"></script>
 <script type="text/javascript">
-spotfm.onTrackInfo = function (trackInfo) {
+omnifm.onTrackInfo = function (trackInfo) {
     $('#track').html(trackInfo.track_name);
     $('#album').html(trackInfo.album_name);
     $('#artist').html(trackInfo.artist_name);
+    // TODO spotfm specific
     $.ajax({url: 'http://localhost:9999/track_detail/' + trackInfo.track_id, method:'get',
         success: function (o) {
             var img = $('<img class="album-cover" src="data:image/jpeg;base64,' + o.album_cover + '"/>');
@@ -86,36 +88,36 @@ spotfm.onTrackInfo = function (trackInfo) {
     });
 }
 
-spotfm.onPlay = function () {
+omnifm.onPlay = function () {
     $(document.body).addClass('playing');
     $(document.body).removeClass('stopped');
 }
 
-spotfm.onStop = function () {
+omnifm.onStop = function () {
     $(document.body).addClass('stopped');
     $(document.body).removeClass('playing');
 }
 
-spotfm.onPositionChange = function (position) {
+omnifm.onPositionChange = function (position) {
     var percent = 0;
 
-    if (spotfm.player.duration > 0) {
-        percent = (position / spotfm.player.duration * 100).toFixed(2);
+    if (omnifm.player.duration > 0) {
+        percent = (position / omnifm.player.duration * 100).toFixed(2);
     }
 
     $('#position').css('width', percent + '%');
 }
 
-spotfm.source = spotify;
+omnifm.source = spotify;
 
-spotfm.connect();
+omnifm.connect();
 
 function resume() {
-    spotfm.resume();
+    omnifm.resume();
 }
 
 function pause() {
-    spotfm.pause();
+    omnifm.pause();
 }
 </script>
 </head>

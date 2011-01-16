@@ -1,10 +1,10 @@
 function xm(action) {
     return function (options) {
-        spotfm.call(action, options);
+        omnifm.call(action, options);
     }
 }
 
-var spotfm = {
+var omnifm = {
     callbackNum: 0,
     callbacks: {},
 
@@ -13,30 +13,30 @@ var spotfm = {
     },
 
     resolve: function (trackInfo, options) {
-        var callbackNum = '' + spotfm.callbackNum++;
-        spotfm.callbacks[callbackNum] = options;
-        spotfm.call('resolve', {trackInfo: trackInfo, context: callbackNum});
+        var callbackNum = '' + omnifm.callbackNum++;
+        omnifm.callbacks[callbackNum] = options;
+        omnifm.call('resolve', {trackInfo: trackInfo, context: callbackNum});
     },
 
     resolveAndPlay: function (trackInfo) {
-        spotfm.call('resolveAndPlay', {trackInfo: trackInfo});
+        omnifm.call('resolveAndPlay', {trackInfo: trackInfo});
     },
 
     playFromPlaylist: function (playlist, offset) {
-        spotfm.call('playFromPlaylist', {playlist: playlist, offset: offset});
+        omnifm.call('playFromPlaylist', {playlist: playlist, offset: offset});
     },
 
     setLastfmSession: function (lastfmSession) {
-        spotfm.call('setLastfmSession', lastfmSession);
+        omnifm.call('setLastfmSession', lastfmSession);
     },
 
     pageUnloaded: function () {
-        spotfm.call('pageUnloaded');
+        omnifm.call('pageUnloaded');
     }
 };
 
 $(window).bind('unload', function (event) {
-    spotfm.pageUnloaded();
+    omnifm.pageUnloaded();
 });
 
 var trackDetailIframe;
@@ -50,7 +50,7 @@ function showDetail(event) {
     $('.track-detail', frameBody).text('resolving...');
 
     var trackInfo = getRowInfo($(event.target).closest('tr').get(0));
-    spotfm.resolve(trackInfo, {
+    omnifm.resolve(trackInfo, {
         onResolution: function (spotifyId) {
             $.ajax({url: 'http://localhost:9999/track_detail/' + spotifyId, method:'get',
                 success: function (o) {
@@ -72,7 +72,7 @@ extension.onMessage = function(message) {
     var options = message.options;
 
     if (action == 'callback') {
-        var callbackOptions = spotfm.callbacks[options.context];
+        var callbackOptions = omnifm.callbacks[options.context];
         var callback = callbackOptions[options.callback];
         if (callback) {
             callback.apply(callbackOptions, options.args);
@@ -103,10 +103,10 @@ function onResolutionFailure(offset) {
 
 function onPlay(offset)  {
     if (currentPlaylistOffset != null) {
-        $(currentPlaylist.trElts[currentPlaylistOffset]).removeClass('spotfmPlaying');
+        $(currentPlaylist.trElts[currentPlaylistOffset]).removeClass('omnifmPlaying');
     }
 
-    $(currentPlaylist.trElts[offset]).addClass('spotfmPlaying');
+    $(currentPlaylist.trElts[offset]).addClass('omnifmPlaying');
     currentPlaylistOffset = offset;
 }
 
@@ -115,7 +115,7 @@ function playTrElt(trElt) {
 
     var tracks = trElts.map(getRowInfo);
 
-    spotfm.playFromPlaylist(tracks, trElts.indexOf(trElt));
+    omnifm.playFromPlaylist(tracks, trElts.indexOf(trElt));
 
     currentPlaylist = {
         tracks: tracks,

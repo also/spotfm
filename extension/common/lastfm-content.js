@@ -70,6 +70,6 @@ $(function() {
 
     document.addEventListener('lastfmSession', function (event) {
         var sessionJSON = $(document.body).attr('data-session');
-        spotfm.setLastfmSession(JSON.parse(sessionJSON));
+        omnifm.setLastfmSession(JSON.parse(sessionJSON));
     });
 });

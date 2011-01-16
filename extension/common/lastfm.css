@@ -12,12 +12,12 @@ tbody tr td.playbuttonCell {
     min-width: 17px !important;
 }
 
-.spotfmPlaying, table.chart tr.odd.spotfmPlaying td {
+.omnifmPlaying, table.chart tr.odd.omnifmPlaying td {
     background-color: green !important;
     color: #fff;
 }
 
-table.chart .spotfmPlaying td.subjectCell a {
+table.chart .omnifmPlaying td.subjectCell a {
     color: #fff !important;
 }
 

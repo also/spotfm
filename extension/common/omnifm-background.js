@@ -1,39 +1,39 @@
-_.extend(spotfm, {
+_.extend(omnifm, {
     call: function (action, options) {
-        if (spotfm.currentPage) {
-            extension.send(spotfm.currentPage, {action: action, options: options});
+        if (omnifm.currentPage) {
+            extension.send(omnifm.currentPage, {action: action, options: options});
         }
     },
 
     setPlaylist: function (playlist, playlistOffset) {
-        spotfm.playlist = playlist;
-        spotfm.playlistOffset = playlistOffset || 0;
+        omnifm.playlist = playlist;
+        omnifm.playlistOffset = playlistOffset || 0;
     },
 
     playOffset: function (offset) {
-        var trackInfo = spotfm.playlist[offset];
+        var trackInfo = omnifm.playlist[offset];
 
-        spotfm.currentTrack = trackInfo;
-        spotfm.playlistOffset = offset;
+        omnifm.currentTrack = trackInfo;
+        omnifm.playlistOffset = offset;
 
-        spotfm.call('onPlay', {offset: offset});
+        omnifm.call('onPlay', {offset: offset});
 
         if (trackInfo.spotifyId) {
-            spotfm.play(trackInfo.spotifyId);
+            omnifm.play(trackInfo.spotifyId);
         }
         else if (trackInfo.unresolvable) {
-            spotfm.next();
+            omnifm.next();
         }
         else {
-            spotfm.resolveAndPlay(trackInfo, {
+            omnifm.resolveAndPlay(trackInfo, {
                 onResolution: function (id) {
                     trackInfo.spotifyId = id;
-                    spotfm.call('onResolution', {offset: offset, id: id});
+                    omnifm.call('onResolution', {offset: offset, id: id});
                 },
                 onResolutionFailure: function () {
                     trackInfo.unresolvable = null;
-                    spotfm.call('onResolutionFailure', {offset: offset});
-                    spotfm.next();
+                    omnifm.call('onResolutionFailure', {offset: offset});
+                    omnifm.next();
                 }
             });
         }
@@ -41,37 +41,37 @@ _.extend(spotfm, {
 
     setCurrentPage: function (page) {
         // TODO notify current page
-        spotfm.currentPage = page;
+        omnifm.currentPage = page;
     },
 
     playFromPlaylist: function (page, playlist, offset) {
-        spotfm.setCurrentPage(page);
-        spotfm.setPlaylist(playlist);
-        spotfm.playOffset(offset);
+        omnifm.setCurrentPage(page);
+        omnifm.setPlaylist(playlist);
+        omnifm.playOffset(offset);
     },
 
     next: function() {
-        if (spotfm.playlist && spotfm.playlistOffset + 1 < spotfm.playlist.length) {
-            spotfm.playOffset(spotfm.playlistOffset + 1);
+        if (omnifm.playlist && omnifm.playlistOffset + 1 < omnifm.playlist.length) {
+            omnifm.playOffset(omnifm.playlistOffset + 1);
         }
     },
 
     previous: function() {
-        if (spotfm.playlist && spotfm.playlistOffset - 1 >= 0) {
-            spotfm.playOffset(spotfm.playlistOffset - 1);
+        if (omnifm.playlist && omnifm.playlistOffset - 1 >= 0) {
+            omnifm.playOffset(omnifm.playlistOffset - 1);
         }
     },
 
     tryToPlay: function () {
-        if (spotfm.playlist) {
-            spotfm.playOffset(spotfm.playlistOffset);
+        if (omnifm.playlist) {
+            omnifm.playOffset(omnifm.playlistOffset);
         }
     },
 
     onTrackStart: function () {
-        spotfm.scrobbled = false;
-        if (extension.getSetting('scrobble') && spotfm.currentTrack && spotfm.currentTrack.lastfmId) {
-            spotfm.nowplaying(spotfm.currentTrack.lastfmId);
+        omnifm.scrobbled = false;
+        if (extension.getSetting('scrobble') && omnifm.currentTrack && omnifm.currentTrack.lastfmId) {
+            omnifm.nowplaying(omnifm.currentTrack.lastfmId);
         }
     },
 
@@ -82,22 +82,22 @@ _.extend(spotfm, {
         //  * there is a current track
         //  * the track isn't empty
         //  * the track is longer than 30 seconds (last.fm rule)
-        if (!extension.getSetting('scrobble') || spotfm.scrobbled || !spotfm.currentTrack || !spotfm.player.duration || spotfm.player.duration < 30000) {
+        if (!extension.getSetting('scrobble') || omnifm.scrobbled || !omnifm.currentTrack || !omnifm.player.duration || omnifm.player.duration < 30000) {
             return;
         }
         //  * the player is 4 minutes or halfway through the track, whichever is earlier (last.fm rule)
-        if (position >= Math.min(4 * 60 * 1000, spotfm.player.duration / 2)) {
-            spotfm.scrobbled = true;
-            spotfm.scrobble(spotfm.currentTrack.lastfmId);
+        if (position >= Math.min(4 * 60 * 1000, omnifm.player.duration / 2)) {
+            omnifm.scrobbled = true;
+            omnifm.scrobble(omnifm.currentTrack.lastfmId);
         }
     },
 
     scrobble: function (lastfmTrackId) {
-        $.ajax({url: 'http://www.last.fm/ajax/scrobble', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
+        $.ajax({url: 'http://www.last.fm/ajax/scrobble', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + omnifm.lastfmSession.formtoken});
     },
 
     nowplaying: function (lastfmTrackId) {
-        $.ajax({url: 'http://www.last.fm/ajax/nowplaying', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + spotfm.lastfmSession.formtoken});
+        $.ajax({url: 'http://www.last.fm/ajax/nowplaying', type:'post', data: 'track=' + lastfmTrackId + '&formtoken=' + omnifm.lastfmSession.formtoken});
     }
 });
 
@@ -105,48 +105,27 @@ extension.onMessage = function (sender, message) {
     var action = message.action;
     var options = message.options;
     if (action == 'resolve') {
-        spotfm.resolve(options.trackInfo, {
+        omnifm.resolve(options.trackInfo, {
             onResolution: function() {
                 extension.send(sender, {action: 'callback', options: {context: options.context, callback: 'onResolution', args: Array.prototype.slice.call(arguments)}});
             }
         });
     }
     if (action == 'resolveAndPlay') {
-        spotfm.resolveAndPlay(options.trackInfo);
+        omnifm.resolveAndPlay(options.trackInfo);
     }
     else if (action == 'playFromPlaylist') {
-        spotfm.playFromPlaylist(sender, options.playlist, options.offset);
+        omnifm.playFromPlaylist(sender, options.playlist, options.offset);
     }
     else if (action == 'setLastfmSession') {
-        spotfm.lastfmSession = options;
+        omnifm.lastfmSession = options;
     }
     else if (action == 'pageUnloaded') {
-        if (spotfm.currentPage == sender) {
-            spotfm.setCurrentPage(null);
+        if (omnifm.currentPage == sender) {
+            omnifm.setCurrentPage(null);
         }
     }
 };
-
-_.extend(spotify, {
-    openTrackInApp: function (trackInfo) {
-        spotfm.resolve(trackInfo, {
-            onResolution: function (id) {
-                extension.openExternalUri(id);
-            },
-            onResolutionFailure: function () {
-                extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
-            }
-        });
-    },
-
-    searchTrackInApp: function (trackInfo) {
-        extension.openExternalUri('spotify:search:' + spotfm.generateTrackQuery(trackInfo));
-    },
-
-    searchObjectInApp: function (info) {
-        extension.openExternalUri('spotify:search:' + spotfm.generateQuery(info));
-    }
-});
 
 if (window.safari) {
     safari.application.addEventListener('contextmenu', function (event) {
@@ -172,6 +151,6 @@ if (window.safari) {
     }, false);
 }
 
-spotfm.source = spotify;
+omnifm.source = spotify;
 
-spotfm.connect();
+omnifm.connect();

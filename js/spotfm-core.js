@@ -77,91 +77,49 @@ var spotify = {
             if (a.data.length > 0) {
                 var j = JSON.parse(a.data);
                 if (j.event == 'track_info') {
-                    spotfm.player.trackInfo = j;
-                    spotfm.player.duration = j.track_duration;
-                    if (spotfm.onTrackInfo) {
-                        spotfm.onTrackInfo(j);
+                    omnifm.player.trackInfo = j;
+                    omnifm.player.duration = j.track_duration;
+                    if (omnifm.onTrackInfo) {
+                        omnifm.onTrackInfo(j);
                     }
                 }
                 else if (j.event == 'start_of_track') {
-                    if (spotfm.onTrackStart) {
-                        spotfm.onTrackStart();
+                    if (omnifm.onTrackStart) {
+                        omnifm.onTrackStart();
                     }
                 }
                 else if (j.event == 'playing') {
-                    spotfm.setPosition(spotfm.player.position);
-                    spotfm.positionUpdateInterval = window.setInterval(spotfm.updatePosition, 500);
-                    if (spotfm.onPlay) {
-                        spotfm.onPlay();
+                    omnifm.setPosition(omnifm.player.position);
+                    omnifm.positionUpdateInterval = window.setInterval(omnifm.updatePosition, 500);
+                    if (omnifm.onPlay) {
+                        omnifm.onPlay();
                     }
                 }
                 else if (j.event == 'stopped') {
-                    window.clearInterval(spotfm.positionUpdateInterval);
-                    if (spotfm.onStop) {
-                        spotfm.onStop();
+                    window.clearInterval(omnifm.positionUpdateInterval);
+                    if (omnifm.onStop) {
+                        omnifm.onStop();
                     }
                 }
                 else if (j.event == 'position') {
-                    spotfm.setPosition(j.position);
+                    omnifm.setPosition(j.position);
                 }
                 else if (j.event == 'next' || j.event == 'end_of_track' || j.event == 'playback_failed') {
-                    if (spotfm.next) {
-                        spotfm.next();
+                    if (omnifm.next) {
+                        omnifm.next();
                     }
                 }
                 else if (j.event == 'previous') {
-                    if (spotfm.previous()) {
-                        spotfm.previous();
+                    if (omnifm.previous()) {
+                        omnifm.previous();
                     }
                 }
                 else if (j.event == 'play') {
-                    if (spotfm.tryToPlay) {
-                        spotfm.tryToPlay();
+                    if (omnifm.tryToPlay) {
+                        omnifm.tryToPlay();
                     }
                 }
             }
         };
     }
 };
-
-var spotfm = {
-    player: {position: 0},
-
-    resolveAndPlay: function (trackInfo, options) {
-        options = options || {};
-        var onResolution = options.onResolution;
-        options.onResolution = function(trackId) {
-            if (onResolution) {
-                onResolution(trackId);
-            }
-            spotfm.play(trackId);
-        }
-        spotfm.resolve(trackInfo, options);
-    },
-
-    setPosition: function (position) {
-        spotfm.player.position = position;
-        spotfm.timeOffset = new Date().getTime() - position;
-        if (spotfm.onPositionChange) {
-            spotfm.onPositionChange(position);
-        }
-    },
-
-    updatePosition: function () {
-        var now = new Date().getTime();
-        var played = now - spotfm.timeOffset;
-        if (played >= spotfm.player.duration) {
-            window.clearInterval(spotfm.positionUpdateInterval);
-            played = spotfm.player.duration;
-        }
-        if (spotfm.onPositionChange) {
-            spotfm.onPositionChange(spotfm.player.position);
-        }
-    }
-};
-
-['play', 'pause', 'resume', 'resolve', 'connect'].forEach(function (name) {
-    spotfm[name] = function () {
-        this.source[name].apply(this.source, arguments);
-    };
-})
