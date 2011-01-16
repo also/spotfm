@@ -125,6 +125,15 @@ extension.onMessage = function (sender, message) {
             omnifm.setCurrentPage(null);
         }
     }
+    else if (action == 'sourceLoaded') {
+        omnifm.sourceTab = sender;
+    }
+    else if (action == 'onNext') {
+        omnifm.next();
+    }
+    else if (action == 'onPositionChange') {
+        omnifm.setPosition(options);
+    }
 };
 
 if (window.safari) {

@@ -1,5 +1,15 @@
 var omnifm = {
-    player: {position: 0},
+    player: {
+        position: 0,
+        onPlay: function () {
+            omnifm.setPosition(omnifm.player.position);
+            omnifm.positionUpdateInterval = window.setInterval(omnifm.updatePosition, 500);
+        },
+
+        onStop: function () {
+            window.clearInterval(omnifm.positionUpdateInterval);
+        }
+    },
 
     resolveAndPlay: function (trackInfo, options) {
         options = options || {};

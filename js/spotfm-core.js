@@ -89,14 +89,13 @@ var spotify = {
                     }
                 }
                 else if (j.event == 'playing') {
-                    omnifm.setPosition(omnifm.player.position);
-                    omnifm.positionUpdateInterval = window.setInterval(omnifm.updatePosition, 500);
+                    omnifm.player.onPlay();
                     if (omnifm.onPlay) {
                         omnifm.onPlay();
                     }
                 }
                 else if (j.event == 'stopped') {
-                    window.clearInterval(omnifm.positionUpdateInterval);
+                    omnifm.player.onStop();
                     if (omnifm.onStop) {
                         omnifm.onStop();
                     }
