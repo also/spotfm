@@ -119,6 +119,10 @@ function resume() {
 function pause() {
     omnifm.pause();
 }
+
+$(function () {
+    omnifm.onStop();
+});
 </script>
 </head>
 <body>
