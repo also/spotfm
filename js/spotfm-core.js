@@ -1,4 +1,7 @@
 var spotify = {
+    connected: false,
+    connecting: false,
+
     play: function (trackId) {
         $.get('http://localhost:9999/play/' + trackId);
     },
@@ -12,6 +15,9 @@ var spotify = {
     },
 
     connect: function () {
+        this.connected = false;
+        this.connecting = true;
+
         if (this.ws) {
             return;
         }
@@ -20,16 +26,22 @@ var spotify = {
         this.ws = ws;
         ws.onopen = function () {
             console.log('open');
+            this.connecting = false;
+            this.connected = true;
         };
 
         ws.onerror = function () {
             this.ws = null;
+            this.connected = false;
+            this.connecting = false;
             console.log('spotfm connection error');
             window.setTimeout(this.connect, 1000);
         };
 
         ws.onclose = function () {
             this.ws = null;
+            this.connected = false;
+            this.connecting = false;
             console.log('spotfm connection closed');
             window.setTimeout(this.connect, 1000);
         };
