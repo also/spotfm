@@ -10,11 +10,11 @@
         {
             "matches": ["http://www.last.fm/*"],
             "js": [
-                "extension-page.js",
-                "extension-page-chrome.js",
+                "extension-content.js",
+                "extension-content-chrome.js",
                 "jquery-1.4.4.min.js",
-                "page.js",
-                "lastfm.js"
+                "browse-content.js",
+                "lastfm-content.js"
             ],
             "css": ["lastfm.css"]
         }

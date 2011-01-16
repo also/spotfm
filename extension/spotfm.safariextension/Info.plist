@@ -23,11 +23,11 @@
 		<dict>
 			<key>Start</key>
 			<array>
-				<string>extension-page.js</string>
-				<string>extension-page-safari.js</string>
+				<string>extension-content.js</string>
+				<string>extension-content-safari.js</string>
 				<string>jquery-1.4.4.min.js</string>
-				<string>page.js</string>
-				<string>lastfm.js</string>
+				<string>browse-content.js</string>
+				<string>lastfm-content.js</string>
 			</array>
 		</dict>
 		<key>Stylesheets</key>
