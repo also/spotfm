@@ -63,7 +63,7 @@ html {
 
 #position {
     height: 4px;
-    width: 50%;
+    width: 0%;
     background-color: #fff;
 }
 
@@ -122,6 +122,8 @@ function pause() {
 
 $(function () {
     omnifm.onStop();
+    $('#pause').bind('click', pause);
+    $('#resume').bind('click', resume);
 });
 </script>
 </head>
@@ -138,9 +140,5 @@ $(function () {
 <span class="button" id="resume">‣</span></p>
 <div id="scrubber"><div id="position"></div></div>
 </div>
-<script type="text/javascript">
-$('#pause').bind('click', pause);
-$('#resume').bind('click', resume);
-</script>
 </body>
 </html>
