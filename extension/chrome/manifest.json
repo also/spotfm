@@ -10,15 +10,15 @@
         {
             "matches": ["http://www.last.fm/*"],
             "js": [
-                "extension-content.js",
-                "extension-content-chrome.js",
+                "ext/extension-content.js",
+                "ext/extension-content-chrome.js",
                 "jquery-1.4.4.min.js",
-                "browse-content.js",
-                "lastfm-content.js"
+                "browse/browse-content.js",
+                "browse/lastfm/lastfm-content.js"
             ],
-            "css": ["lastfm.css"]
+            "css": ["browse/lastfm/lastfm.css"]
         }
     ],
-    "background_page": "background.html",
+    "background_page": "omnifm/background.html",
     "options_page": "options.html"
 }

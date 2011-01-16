@@ -15,7 +15,7 @@
 	<key>Chrome</key>
 	<dict>
 		<key>Global Page</key>
-		<string>background.html</string>
+		<string>omnifm/background.html</string>
 	</dict>
 	<key>Content</key>
 	<dict>
@@ -23,16 +23,16 @@
 		<dict>
 			<key>Start</key>
 			<array>
-				<string>extension-content.js</string>
-				<string>extension-content-safari.js</string>
+				<string>ext/extension-content.js</string>
+				<string>ext/extension-content-safari.js</string>
 				<string>jquery-1.4.4.min.js</string>
-				<string>browse-content.js</string>
-				<string>lastfm-content.js</string>
+				<string>browse/browse-content.js</string>
+				<string>browse/lastfm/lastfm-content.js</string>
 			</array>
 		</dict>
 		<key>Stylesheets</key>
 		<array>
-			<string>lastfm.css</string>
+			<string>browse/lastfm/lastfm.css</string>
 		</array>
 	</dict>
 	<key>ExtensionInfoDictionaryVersion</key>
