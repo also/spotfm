@@ -150,7 +150,3 @@ if (window.safari) {
         }
     }, false);
 }
-
-omnifm.source = spotify;
-
-omnifm.connect();
